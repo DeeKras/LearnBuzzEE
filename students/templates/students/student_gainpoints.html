@@ -1,0 +1,55 @@
+<form method="post">
+    {% csrf_token %}
+    <b>Student:</b> {{student.lastname}}, {{student.firstname}}  <b>Group:</b> {{student.get_group_display}}
+<hr>
+
+<h3>Adding Math Points</h3>
+
+<strong>Current points:</strong> {{student.math_points}}<br>
+
+<strong>Current Math Plan:</strong>
+{{student.mathplan_points}} points per {{student.mathplan_per}} {{student.get_mathplan_type_display}}
+    <br>
+<br>
+    Recording that this student did math work
+    <table>
+        <tr>
+            <td> from:</td>
+            <td> details:</td>
+        </tr>
+        <tr>
+            <td>{{form.math_source}}</td>
+            <td>{{form.math_source_details}}</td>
+        </tr>
+    </table>
+
+    Did {{form.math_amt}} of [choose type] {{form.math_type}}
+
+    <hr>
+<h3>Adding Reading Points</h3>
+
+<strong>Current  points:</strong> {{student.reading_points}}<br>
+
+<strong>Current Reading Plan:</strong>
+{{student.readingplan_points}} points per {{student.readingplan_per}} {{student.get_readingplan_type_display}}
+    <br>
+    <br>
+    Recording that this student did reading work
+    <table>
+        <tr>
+            <td> from:</td>
+            <td> details:</td>
+        </tr>
+        <tr>
+            <td>{{form.reading_source}}</td>
+            <td>{{form.reading_source_details}}</td>
+        </tr>
+    </table>
+
+    Did {{form.reading_amt}} of [choose type] {{form.reading_type}}
+<hr>
+    <input type="submit" value="Submit" />
+
+    {{form.errors}}
+
+</form>

@@ -1,0 +1,24 @@
+<form method="post">
+    {% csrf_token %}
+    <b>Student:</b> {{learningplan.lastname}}, {{learningplan.firstname}}  <b>Group:</b> {{learningplan.get_group_display}}
+<hr>
+
+<h3>Math Plan</h3>
+
+<strong>Current points:</strong> {{learningplan.math_points}}<br>
+
+<strong>Current Math Plan:</strong>
+{{form.mathplan_points}} points per {{form.mathplan_per}} number of {{form.mathplan_type}}
+    <hr>
+<h3>Reading Plan</h3>
+
+<strong>Current points:</strong> {{learningplan.reading_points}}<br>
+
+<strong>Current Reading Plan:</strong>
+{{form.readingplan_points}} points per {{form.readingplan_per}} number of {{form.readingplan_type}}
+
+    <input type="submit" value="Submit" />
+
+    {{form.errors}}
+</form>
+
