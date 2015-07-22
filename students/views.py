@@ -151,6 +151,7 @@ def student_gainpoints(request, pk):
 def student_gainpoints_list(request, pk):
     student = get_object_or_404(Student, pk=pk)
     object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
+    total = object_list.count()
 
     paginator = Paginator(object_list, 8, orphans=3)
 
@@ -163,7 +164,7 @@ def student_gainpoints_list(request, pk):
         object_list = paginator.page(num_pages)
 
     template_name = 'students/student_gainpoints_list.html'
-    context = {'object_list': object_list, 'student': student, }
+    context = {'object_list': object_list, 'student': student, 'total': total}
     return render(request, template_name, context)
 
 

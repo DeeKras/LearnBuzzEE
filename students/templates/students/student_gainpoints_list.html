@@ -1,6 +1,12 @@
-<b>Student: {{student.lastname}}, {{student.firstname}}</b><hr>
+<b>Student: {{student.lastname}}, {{student.firstname}}</b>
+<a href="{% url "student_gainpoints" student.pk %}"><button>add more learning</button></a>
+<hr>
+Total results: {{ total }}
+
+<hr>
 {% for log in object_list %}
-    <b>{{forloop.counter}}.
+
+    <b>{{ forloop.counter0|add:object_list.start_index }}
         {{log.created_date}} by: {{log.created_by}}</b><br>
         {#TODO: figure out pagination counter for page 2 #}
         <table>
@@ -13,7 +19,7 @@
                     <strong>Math:</strong>
                     {% if log.math_amt != None %}
                         {{log.math_amt}} {{log.get_math_type_display}} in {{log.math_source}}
-                        {% if log.math_source_details != None %}({{log.math_source_details}}){% endif %}
+                        {% if log.math_source_details %}({{log.math_source_details}}){% endif %}
                     {% else %}
                         ---------------------
                     {% endif %}
@@ -36,18 +42,19 @@
     <div class="pagination">
     <span class="step-links">
         {% if object_list.has_previous %}
-            <a href="?page={{ object_list.previous_page_number }}">previous</a>
+            <a href="?page={{ object_list.previous_page_number }}"><button>previous</button></a>
         {% endif %}
 
         <span class="current">
             Page {{ object_list.number }} of {{ object_list.paginator.num_pages }}.
+            Displaying {{object_list |length}} of {{total}} results.
         </span>
 
         {% if object_list.has_next %}
-            <a href="?page={{ object_list.next_page_number }}">next</a>
+            <a href="?page={{ object_list.next_page_number }}"><button>next</button></a>
         {% endif %}
     </span>
 </div>
 
-<a href="{% url "student_gainpoints" student.pk %}">add more learning</a>
+
 
