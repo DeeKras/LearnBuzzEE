@@ -1,3 +1,5 @@
+{% extends "students/base.html" %}
+{% block content %}
 <b>Student: {{student.lastname}}, {{student.firstname}}</b>
 <a href="{% url "student_gainpoints" student.pk %}"><button>add more learning</button></a>
 <hr>
@@ -55,6 +57,6 @@ Total results: {{ total }}
         {% endif %}
     </span>
 </div>
-
+{% endblock %}
 
 

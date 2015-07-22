@@ -1,0 +1,27 @@
+<table>
+        <col width="300">
+        <col width="150">
+        <col width="150">
+        <col width="100">
+        <col width="100">
+        <col width="140">
+        <col width="100">
+        <col width="100">
+        <col width="140">
+    <tr>
+        <td>
+            <font face="arial" color=20B2AA size="6">LearnBuzzEE</font>
+        </td>
+        <td>
+            <a href="{% url "student_list" %}"><button>Student List</button></a>
+        </td>
+        <td>
+            <a href="{% url "student_new" %}"><button>Add New Student</button></a>
+        </td>
+    </tr>
+</table>
+<hr>
+{% block content %}{% endblock %}
+
+<hr>
+<div align="right">&copy; LearnBuzzEE  2015</div>

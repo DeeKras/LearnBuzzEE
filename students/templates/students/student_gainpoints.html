@@ -1,3 +1,5 @@
+{% extends "students/base.html" %}
+{% block content %}
 <form method="post">
     {% csrf_token %}
     <b>Student:</b> {{student.lastname}}, {{student.firstname}}  <b>Group:</b> {{student.get_group_display}}
@@ -53,3 +55,4 @@
     {{form.errors}}
 
 </form>
+{% endblock %}

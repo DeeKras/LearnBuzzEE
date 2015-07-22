@@ -1,3 +1,5 @@
+{% extends "students/base.html" %}
+{% block content %}
 <h1>Students</h1>
 
     <table>
@@ -41,4 +43,5 @@
     </span>
 </div>
 <hr>
-<a href="{% url "student_new" %}"><button>Add New Student</button></a>
+
+{% endblock %}
