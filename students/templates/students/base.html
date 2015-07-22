@@ -2,7 +2,7 @@
         <col width="300">
         <col width="150">
         <col width="150">
-        <col width="100">
+        <col width="400">
         <col width="100">
         <col width="140">
         <col width="100">
@@ -17,6 +17,13 @@
         </td>
         <td>
             <a href="{% url "student_new" %}"><button>Add New Student</button></a>
+        </td>
+        <td>
+            <form  action="student/search/"  method=GET>
+                <input type="text" name="last" placeholder="search student">
+                <button>Search</button></a>
+
+            </form>
         </td>
     </tr>
 </table>

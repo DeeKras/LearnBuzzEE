@@ -2,7 +2,57 @@
 {% block content %}
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit" />
+
+    <table>
+        <col width="300">
+        <col width="170">
+        <col width="170">
+        <col width="170">
+        <col width="600">
+        <th align="left">
+            <h3>Student Information</h3>
+        </th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th align="left">
+            <h3>Individual Learning Plan</h3>
+        </th>
+        <tr>
+            <td valign="top">
+                <strong>Name:</strong><br>
+                First name:  {{form.firstname}}<br><br>
+                Last name:   {{form.lastname}}
+                Total Points: {{student.total_points}}
+            </td>
+            <td valign="top">
+                <strong>Group:</strong><br>{{form.group}}
+            </td>
+            <td valign="top">
+                <strong>Gender:</strong><br>{{form.gender}}
+            </td>
+            <td valign="top">
+                <strong>Avatar:</strong> <br><br>{{form.avatar}}
+            </td>
+            <td>
+                {% include 'students/learningplan.html' %}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="submit" value="Submit Student Information" />
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
 </form>
+<hr>
+
+
+
+
 {% endblock %}

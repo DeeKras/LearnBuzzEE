@@ -1,13 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import  HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.views.generic import TemplateView, ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from .forms import StudentForm, StudentLogForm, StudentLearningPlanForm, StudentGainPointsForm
+from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
 from .models import Student, StudentLog, StudentGainPoints
 
 #----------------------------------------------------
@@ -66,7 +67,7 @@ def student_new_update(request, pk=None, student=None):
         form = StudentForm(instance=student)
 
     template_name = 'students/student_form.html'
-    context = {'form': form}
+    context = {'form': form, 'student': student}
     return render(request, template_name, context)
 
 
@@ -79,6 +80,18 @@ def student_delete(request, pk):
     template_name = 'students/student_confirm_delete.html'
     context = {'object': student}
     return render(request, template_name, context)
+
+def student_search(request):
+    if request.GET['last']:
+        student = Student.objects.get(lastname=request.GET['last'])
+        form = StudentForm(instance=student)
+
+        template_name = 'students/student_form.html'
+        context = {'form': form}
+        return render(request, template_name, context)
+    else:
+        return HttpResponseRedirect('/')
+
 
 def student_logcreate(request, pk):
     student = get_object_or_404(Student, pk=pk)
@@ -109,7 +122,6 @@ def student_learningplan(request, pk):
     student = get_object_or_404(Student, pk=pk)
     learningplan = Student.objects.get(pk=pk)
     form = StudentLearningPlanForm(instance=student)
-
     if request.method == 'POST':
         form = StudentLearningPlanForm(request.POST, instance=student)
         if form.is_valid():
@@ -142,6 +154,24 @@ def student_gainpoints(request, pk):
                                   reading_type = form.cleaned_data['reading_type']
                                   )
             f.save() # TODO: how to do this with form.save()?
+
+            #add the points
+            mathplan_points = student.mathplan_points
+            mathplan_per = student.mathplan_per
+            mathplan_type = student.mathplan_type
+
+            print 'points {} | remaining {}'.format(student.math_points, student.math_remaining)
+            print 'math he did {}'.format(f.math_amt)
+            print 'math plan {} points per {} {}'.format(student.mathplan_points, student.mathplan_per, student.mathplan_type)
+            points_to_add = ((f.math_amt + student.math_remaining)/mathplan_per)*mathplan_points
+
+            student.math_points += points_to_add
+            student.total_points +=points_to_add
+            remaining_to_add = ((f.math_amt + student.math_remaining)%mathplan_per)
+            student.math_remaining = remaining_to_add
+            student.save()
+            print 'points {} | remaining {}'.format(student.math_points, student.math_remaining)
+
 
             return HttpResponseRedirect(reverse('student_list'))
     template_name = 'students/student_gainpoints.html'

@@ -2,7 +2,7 @@
 {% block content %}
 <form method="post">
     {% csrf_token %}
-    Student: {{student.lastname}}, {{student.firstname}} ({{student.pk}})
+    Student: {{student.lastname}}, {{student.firstname}}
     {{ form.as_p }}
     <input type="submit" value="Submit" />
 </form>

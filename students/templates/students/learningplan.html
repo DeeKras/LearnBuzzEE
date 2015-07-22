@@ -1,26 +1,29 @@
-{% extends "students/base.html" %}
-{% block content %}
-<form method="post">
+
+     <form action="{% url 'student_learningplan' %}" method="post">
     {% csrf_token %}
-    <b>Student:</b> {{learningplan.lastname}}, {{learningplan.firstname}}  <b>Group:</b> {{learningplan.get_group_display}}
-<hr>
-
-<h3>Math Plan</h3>
-
-<strong>Current points:</strong> {{learningplan.math_points}}<br>
-
-<strong>Current Math Plan:</strong>
-{{form.mathplan_points}} points per {{form.mathplan_per}} number of {{form.mathplan_type}}
-    <hr>
-<h3>Reading Plan</h3>
-
-<strong>Current points:</strong> {{learningplan.reading_points}}<br>
-
-<strong>Current Reading Plan:</strong>
-{{form.readingplan_points}} points per {{form.readingplan_per}} number of {{form.readingplan_type}}
-
-    <input type="submit" value="Submit" />
+     <table>
+        <col width="700">
+        <col width="700">
+        <tr>
+            <td valign="top">
+                <strong>Math:</strong> | Current points:{{student.math_points}}<br>
+                <strong>Plan:</strong><br>
+                {{form.mathplan_points}} points <br>
+                per {{form.mathplan_per}}
+                of {{form.mathplan_type}}
+            </td>
+            <td valign="top">
+                <strong>Reading:</strong> | Current points:{{student.reading_points}}<br>
+                <strong>Plan:</strong><br>
+                {{form.readingplan_points}} points<br>
+                per {{form.readingplan_per}} of {{form.readingplan_type}}
+            </td>
+        </tr>
+    </table>
+   <br>
+    <input type="submit" value="Submit Learning Plan" />
 
     {{form.errors}}
 </form>
-{% endblock %}
+
+

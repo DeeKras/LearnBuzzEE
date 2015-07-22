@@ -44,18 +44,22 @@ class Student(models.Model):
     added_how = models.CharField(max_length=100)
     added_how_detail = models.CharField(max_length=255)
 
+#TODO figure out how to make the remaning be a dictionary {'lines': 0,}
+    total_points = models.PositiveIntegerField(default=0)
     math_points = models.IntegerField(default=0)
+    math_remaining = models.IntegerField(default=0)
     reading_points = models.PositiveIntegerField(default=0)
+    reading_remaining = models.IntegerField(default=0)
 
-    mathplan_points = models.PositiveIntegerField(null=True)
-    mathplan_per = models.PositiveIntegerField(null=True)
+    mathplan_points = models.PositiveIntegerField(null=True, blank=True)
+    mathplan_per = models.PositiveIntegerField(null=True, blank=True)
     mathplan_type = models.CharField(max_length=2,
-                                     choices= MATHPLAN_CHOICES)
+                                     choices= MATHPLAN_CHOICES, blank=True)
 
-    readingplan_points = models.PositiveIntegerField(null=True)
-    readingplan_per = models.PositiveIntegerField(null=True)
+    readingplan_points = models.PositiveIntegerField(null=True, blank=True)
+    readingplan_per = models.PositiveIntegerField(null=True, blank=True)
     readingplan_type = models.CharField(max_length=2,
-                                     choices= READINGPLAN_CHOICES)
+                                     choices= READINGPLAN_CHOICES, blank=True)
 
     class Meta:
         verbose_name_plural = 'students'
