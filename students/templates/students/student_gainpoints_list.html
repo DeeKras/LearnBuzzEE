@@ -1,0 +1,53 @@
+<b>Student: {{student.lastname}}, {{student.firstname}}</b><hr>
+{% for log in object_list %}
+    <b>{{forloop.counter}}.
+        {{log.created_date}} by: {{log.created_by}}</b><br>
+        {#TODO: figure out pagination counter for page 2 #}
+        <table>
+            <col width="100">
+            <col width="600">
+            <col width="600">
+            <tr>
+                <td></td>
+                <td>
+                    <strong>Math:</strong>
+                    {% if log.math_amt != None %}
+                        {{log.math_amt}} {{log.get_math_type_display}} in {{log.math_source}}
+                        {% if log.math_source_details != None %}({{log.math_source_details}}){% endif %}
+                    {% else %}
+                        ---------------------
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>Reading:</strong>
+                    {% if log.reading_amt != None %}
+                        {{log.reading_amt}} {{log.get_reading_type_display}} in {{log.reading_source}}
+                        {% if log.reading_source_details %}({{log.reading_source_details}}){% endif %}
+                    {% else %}
+                        ---------------------
+                    {% endif %}
+                </td>
+            </tr>
+            </table>
+    </ul>
+    <hr>
+{% endfor %}
+
+    <div class="pagination">
+    <span class="step-links">
+        {% if object_list.has_previous %}
+            <a href="?page={{ object_list.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ object_list.number }} of {{ object_list.paginator.num_pages }}.
+        </span>
+
+        {% if object_list.has_next %}
+            <a href="?page={{ object_list.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+
+<a href="{% url "student_gainpoints" student.pk %}">add more learning</a>
+

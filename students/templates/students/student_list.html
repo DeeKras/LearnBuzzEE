@@ -9,6 +9,7 @@
         <col width="140">
         <col width="100">
         <col width="100">
+        <col width="140">
     {% for student in students %}
         <tr>
         <td><b>{{student.lastname}} | {{ student.firstname }} |</b> {{student.added_how}} </td>
@@ -19,6 +20,7 @@
         <td><a href="{% url "student_learningplan" student.pk %}"><button>show learning plan</button></a></td>
         <td><a href="{% url "student_gainpoints" student.pk %}"><button>gain points</button></a></td>
         <td><a href="{% url "student_spendpoints" student.pk %}"><button>spend points</button></a></td>
+        <td><a href="{% url "student_gainpoints_list" student.pk %}"><button>show points</button></a></td>
         </tr>
     {% endfor %}
     </table>

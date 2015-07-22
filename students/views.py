@@ -148,6 +148,25 @@ def student_gainpoints(request, pk):
     context = {'student' : student, 'form': form}
     return render(request, template_name, context)
 
+def student_gainpoints_list(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
+
+    paginator = Paginator(object_list, 8, orphans=3)
+
+    page = request.GET.get('page')
+    try:
+        object_list = paginator.page(page)
+    except PageNotAnInteger:
+        object_list = paginator.page(1)
+    except EmptyPage:
+        object_list = paginator.page(num_pages)
+
+    template_name = 'students/student_gainpoints_list.html'
+    context = {'object_list': object_list, 'student': student, }
+    return render(request, template_name, context)
+
+
 def student_spendpoints(request, pk):
     pass
 
