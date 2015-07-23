@@ -57,6 +57,8 @@ def student_retrieve(request):
 def student_new_update(request, pk=None, student=None):
     if pk:
         student = get_object_or_404(Student, pk=pk)
+        log_list = StudentLog.objects.filter(student_id=pk).order_by('-created_date')
+
 
     if request.method == 'POST':
         form = StudentForm(request.POST, instance=student)
@@ -67,7 +69,7 @@ def student_new_update(request, pk=None, student=None):
         form = StudentForm(instance=student)
 
     template_name = 'students/student_form.html'
-    context = {'form': form, 'student': student}
+    context = {'form': form, 'student': student, 'log_list': log_list}
     return render(request, template_name, context)
 
 
@@ -96,10 +98,10 @@ def student_search(request):
 def student_logcreate(request, pk):
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
-        form = StudentLogForm(request.POST)
+        form = StudentLogForm(request.POST, instance=student)
         if form.is_valid():
             f = StudentLog(student=student,
-                           content=request.POST['content'],
+                           content=form.cleaned_data['content'],
                            created_by=request.user)
             f.save()             # TODO: how to do this with form.save()?
 
@@ -136,7 +138,7 @@ def student_gainpoints(request, pk):
     student = get_object_or_404(Student, pk=pk)
     form = StudentGainPointsForm(instance=student)
     if request.method == 'POST':
-        form = StudentGainPointsForm(request.POST)
+        form = StudentGainPointsForm(request.POST, student=student)
         if form.is_valid():
             if form.cleaned_data['math_type'] != '' and form.cleaned_data['math_type'] != student.mathplan_type:
                 print 'must be the same as the type in the Math Plan' #TODO - How to make this a Validation?

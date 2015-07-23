@@ -1,5 +1,4 @@
-{% extends "students/base.html" %}
-{% block content %}
+
 <b>Student: {{student.lastname}}, {{student.firstname}}</b><hr>
 {% for log in log_list %}
     {{ forloop.counter }}. {{log.created_date}} by: {{log.created_by}}<br>
@@ -7,4 +6,3 @@
 {% endfor %}
 
 <a href="{% url "student_log_add" student.pk %}">add to log</a>
-{% endblock %}

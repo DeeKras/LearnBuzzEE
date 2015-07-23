@@ -110,27 +110,5 @@ class StudentGainPoints(models.Model):
                                      choices= READINGPLAN_CHOICES,
                                     blank=True)
 
-    def clean(self):
-
-            errorlist = {}
-            if self.math_amt != None or self.math_type != '' or self.math_source != '':
-                if self.math_source == '':
-                    errorlist['math_source']='must enter math source'
-                if self.math_amt == None:
-                    errorlist['math_amt']='must enter math amt'
-                if self.math_type == '':
-                    errorlist['math_type']='must enter math type'
-            if self.reading_amt != None or self.reading_type != '' or self.reading_source != '':
-                if self.reading_source == '':
-                    errorlist['reading_source']='must enter reading source'
-                if self.reading_amt == None:
-                    errorlist['reading_amt']='must enter reading amt'
-                if self.reading_type == '':
-                    errorlist['reading_type']='must enter reading type'
-
-
-            raise ValidationError(errorlist)
-
-
     def __unicode__(self):
         return '{}, {} gained points on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
