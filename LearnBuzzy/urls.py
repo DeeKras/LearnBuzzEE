@@ -11,6 +11,7 @@ urlpatterns = [
 #students
 
     url(r'^$', 'students.views.student_retrieve', name='student_list'),
+    url(r'^hello', 'students.views.hello', name='hello'),
     url(r'^new$', 'students.views.student_new_update', name ='student_new'),
     url(r'^edit/(?P<pk>\d+)$', 'students.views.student_new_update', name='student_edit'),
     url(r'^delete/(?P<pk>\d+)$', 'students.views.student_delete', name='student_delete'),

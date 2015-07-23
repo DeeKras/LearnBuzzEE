@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.http import  HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -8,37 +9,25 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+import re
+from operator import attrgetter
+
+
+
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
-from .models import Student, StudentLog, StudentGainPoints
-
-#----------------------------------------------------
-# class StudentList(ListView):
-#     model = Student
-#     paginate_by = 12
-#
-# class StudentCreate(CreateView):
-#     model = Student
-#     fields = ['firstname', 'lastname', 'gender',
-#                   'avatar', 'group', ]
-#     success_url = reverse_lazy('student_list')
-#
-# class StudentEdit(UpdateView):
-#     model = Student
-#     fields = ['firstname', 'lastname', 'gender',
-#                   'avatar', 'group', ]
-#     success_url = reverse_lazy('student_list')
-#
-# class StudentDelete(DeleteView):
-#     model = Student
-#     success_url = reverse_lazy('student_list')
+from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog
 
 
+def hello(request):
+    print 'hello'
+    return render(request,'students/hello.html')
 
 
 
 
 #----------------------------------------------
 def student_retrieve(request):
+
     student_list = Student.objects.all().order_by('firstname').order_by('lastname')
     paginator = Paginator(student_list, 6, orphans=3)
 
@@ -57,19 +46,29 @@ def student_retrieve(request):
 def student_new_update(request, pk=None, student=None):
     if pk:
         student = get_object_or_404(Student, pk=pk)
-        log_list = StudentLog.objects.filter(student_id=pk).order_by('-created_date')
-
+        # log_list = StudentLog.objects.filter(student_id=pk).order_by('-created_date')
 
     if request.method == 'POST':
         form = StudentForm(request.POST, instance=student)
         if form.is_valid():
-             form.save()
-             return HttpResponseRedirect(reverse('student_list'))
+            form.save()
+            if request.POST['submit'] == "Submit Learning Plan":
+                 f = StudentLearningPlanLog(student=student,
+                                       created_by = request.user,
+                                       mathplan_points = form.cleaned_data['mathplan_points'],
+                                       mathplan_per = form.cleaned_data['mathplan_per'],
+                                       mathplan_type = form.cleaned_data['mathplan_type'],
+                                       readingplan_points = form.cleaned_data['readingplan_points'],
+                                       readingplan_per = form.cleaned_data['readingplan_per'],
+                                       readingplan_type = form.cleaned_data['readingplan_type'])
+
+                 f.save()
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     else:
         form = StudentForm(instance=student)
 
     template_name = 'students/student_form.html'
-    context = {'form': form, 'student': student, 'log_list': log_list}
+    context = {'form': form, 'student': student}
     return render(request, template_name, context)
 
 
@@ -85,17 +84,19 @@ def student_delete(request, pk):
 
 def student_search(request):
     if request.GET['last']:
-        student = Student.objects.get(lastname=request.GET['last'])
+        student = Student.objects.get(lastname__startswith=request.GET['last'])
+        log_list = StudentLog.objects.filter(student_id=student.pk).order_by('-created_date')
         form = StudentForm(instance=student)
 
         template_name = 'students/student_form.html'
-        context = {'form': form}
+        context = {'form': form, 'log_list': log_list, 'student': student}
         return render(request, template_name, context)
     else:
         return HttpResponseRedirect('/')
 
 
 def student_logcreate(request, pk):
+    print 'log create'
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
         form = StudentLogForm(request.POST, instance=student)
@@ -121,6 +122,7 @@ def student_loglist(request, pk):
      return render(request, template_name, context)
 
 def student_learningplan(request, pk):
+    print 'learning plan'
     student = get_object_or_404(Student, pk=pk)
     learningplan = Student.objects.get(pk=pk)
     form = StudentLearningPlanForm(instance=student)
@@ -128,7 +130,18 @@ def student_learningplan(request, pk):
         form = StudentLearningPlanForm(request.POST, instance=student)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('student_list'))
+
+            f = StudentLearningPlanLog(student=student,
+                                       created_by = request.user,
+                                       mathplan_points = cleaned_data['mathplan_points'],
+                                       mathplan_per = cleaned_data['mathplan_per'],
+                                       mathplan_type = cleaned_data['mathplan_type'],
+                                       readingplan_points = cleaned_data['readingplan_points'],
+                                       readingplan_per = cleaned_data['readingplan_per'],
+                                       readingplan_type = cleaned_data['readingplan_type'])
+            print f
+            f.save()
+            return HttpResponseRedirect(reverse('student_edit'))
 
     template_name = 'students/learningplan.html'
     context = {'learningplan': learningplan, 'form': form}
@@ -182,8 +195,12 @@ def student_gainpoints(request, pk):
 
 def student_gainpoints_list(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
-    total = object_list.count()
+    learningplan_list = list(StudentLearningPlanLog.objects.filter(student=student))
+    points_list = list(StudentGainPoints.objects.filter(student=student))
+    object_list = sorted(learningplan_list + points_list, key=attrgetter('created_date'), reverse=True)
+
+    # object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
+    total = points_list.count
 
     paginator = Paginator(object_list, 8, orphans=3)
 
@@ -286,28 +303,98 @@ def student_spendpoints(request, pk):
 
 #------------------------------------
 
-def student_cru(request, search=None):
-    print request.method
+# def student_cru(request, search=None):
+#     print request.method
+#
+#     if search:
+#         student = get_object_or_404(Student, pk=id)
+#
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             print 'is valid'
+#             student = form.save(commit=False)
+#             student.added_how = 'individual add'
+#             student.added_how_detail = request.user
+#             student.save()
+#             return HttpResponseRedirect('/')
+#         else:
+#             print 'is not valid'
+#             context = {'form': StudentForm(data=request.POST)}
+#     else:
+#         form = StudentForm()
+#         context = {'form': form}
+#
+#     template = 'students/student_form.html'
+#     return render(request, template, context)
 
-    if search:
-        student = get_object_or_404(Student, pk=id)
+#search functionality from
+# http://julienphalip.com/post/2825034077/adding-search-to-a-django-site-in-a-snap
+# def normalize_query(query_string,
+#                     findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
+#                     normspace=re.compile(r'\s{2,}').sub):
+#     ''' Splits the query string in invidual keywords, getting rid of unecessary spaces
+#         and grouping quoted words together.
+#         Example:
+#
+#         >>> normalize_query('  some random  words "with   quotes  " and   spaces')
+#         ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
+#
+#     '''
+#     return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)]
+#
+# def get_query(query_string, search_fields):
+#     ''' Returns a query, that is a combination of Q objects. That combination
+#         aims to search keywords within a model by testing the given search fields.
+#
+#     '''
+#     query = None # Query to search for every search term
+#     terms = normalize_query(query_string)
+#     for term in terms:
+#         or_query = None # Query to search for a given term in each field
+#         for field_name in search_fields:
+#             q = Q(**{"%s__icontains" % field_name: term})
+#             if or_query is None:
+#                 or_query = q
+#             else:
+#                 or_query = or_query | q
+#         if query is None:
+#             query = or_query
+#         else:
+#             query = query & or_query
+#     return query
+#
+# def search(request, search_objects, search_fields, search_name='q'):
+#     search_string = ''
+#     results = search_objects
+#     if (search_name in request.GET) and request.GET[search_name].strip():
+#         search_string = request.GET[search_name]
+#         object_query = get_query(search_string, search_fields)
+#         results = search_objects.filter(object_query)
+#     return results
 
-    if request.method == 'POST':
-        form = StudentForm(request.POST)
-        if form.is_valid():
-            print 'is valid'
-            student = form.save(commit=False)
-            student.added_how = 'individual add'
-            student.added_how_detail = request.user
-            student.save()
-            return HttpResponseRedirect('/')
-        else:
-            print 'is not valid'
-            context = {'form': StudentForm(data=request.POST)}
-    else:
-        form = StudentForm()
-        context = {'form': form}
 
-    template = 'students/student_form.html'
-    return render(request, template, context)
+
+#----------------------------------------------------
+# class StudentList(ListView):
+#     model = Student
+#     paginate_by = 12
+#
+# class StudentCreate(CreateView):
+#     model = Student
+#     fields = ['firstname', 'lastname', 'gender',
+#                   'avatar', 'group', ]
+#     success_url = reverse_lazy('student_list')
+#
+# class StudentEdit(UpdateView):
+#     model = Student
+#     fields = ['firstname', 'lastname', 'gender',
+#                   'avatar', 'group', ]
+#     success_url = reverse_lazy('student_list')
+#
+# class StudentDelete(DeleteView):
+#     model = Student
+#     success_url = reverse_lazy('student_list')
+
+
 

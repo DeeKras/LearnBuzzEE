@@ -22,6 +22,7 @@
         <td><a href="{% url "student_gainpoints" student.pk %}"><button>gain points</button></a></td>
         <td><a href="{% url "student_spendpoints" student.pk %}"><button>spend points</button></a></td>
         <td><a href="{% url "student_gainpoints_list" student.pk %}"><button>show points</button></a></td>
+
         </tr>
     {% endfor %}
     </table>

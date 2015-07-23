@@ -90,6 +90,23 @@ class StudentLog(models.Model):
     def __unicode__(self):
         return u'{}, {} log on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
 
+class StudentLearningPlanLog(models.Model):
+    student = models.ForeignKey(Student)
+
+    created_date = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=30)
+
+    mathplan_points = models.PositiveIntegerField(null=True, blank=True)
+    mathplan_per = models.PositiveIntegerField(null=True, blank=True)
+    mathplan_type = models.CharField(max_length=2)
+
+    readingplan_points = models.PositiveIntegerField(null=True, blank=True)
+    readingplan_per = models.PositiveIntegerField(null=True, blank=True)
+    readingplan_type = models.CharField(max_length=2)
+
+    def __unicode__(self):
+        return '{}, {} learning plan on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
+
 class StudentGainPoints(models.Model):
     student = models.ForeignKey(Student)
 

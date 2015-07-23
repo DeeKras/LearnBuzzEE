@@ -6,6 +6,14 @@
 Total results: {{ total }}
 
 <hr>
+{% for obj in object_list %}
+    ---------
+    {% if 'StudentLearningPlanLog' in obj %}
+        hello
+    {% endif %}
+{% endfor %}
+
+<hr>
 {% for log in object_list %}
 
     <b>{{ forloop.counter0|add:object_list.start_index }}

@@ -19,7 +19,7 @@
             <a href="{% url "student_new" %}"><button>Add New Student</button></a>
         </td>
         <td>
-            <form  action="student/search/"  method=GET>
+           <form  action= {% url "student_search" %}  method=GET>
                 <input type="text" name="last" placeholder="search student">
                 <button>Search</button></a>
 
@@ -27,8 +27,12 @@
         </td>
     </tr>
 </table>
+    <a href="{% url "hello" %}"><button>hello</button></a>
+
 <hr>
 {% block content %}{% endblock %}
 
 <hr>
-<div align="right">&copy; LearnBuzzEE  2015</div>
+<div align="right">&copy; LearnBuzzEE  2015<br>
+{% now  "l, F j, Y  h:i A" %}
+</div>

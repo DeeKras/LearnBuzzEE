@@ -40,7 +40,7 @@
         </tr>
         <tr>
             <td>
-                <input type="submit" value="Submit Student Information" />
+                <input type="submit" name="submit" value="Submit Student Information" />
             </td>
             <td></td>
             <td></td>
@@ -51,7 +51,15 @@
 
 </form>
 <hr>
-{% include 'students/studentlog_list.html' %}
+
+<form method="get"></form>
+    <a href="{% url "student_log_add" student.pk %}"><button>add to log</button></a>
+    <a href="{% url "student_log_list" student.pk %}"><button>show log list</button></a>
+    <a href="{% url "student_gainpoints" student.pk %}"><button>gain points</button></a>
+    <a href="{% url "student_gainpoints_list" student.pk %}"><button>show points</button></a>
+    <a href="{% url "student_delete" student.pk %}"><button>delete</button></a>
+
+<hr>
 
 
 

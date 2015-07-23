@@ -1,8 +1,12 @@
 
-<b>Student: {{student.lastname}}, {{student.firstname}}</b><hr>
+<b>Student: {{student.lastname}}, {{student.firstname}}  {{student.pk}}</b><hr>
+
+
 {% for log in log_list %}
-    {{ forloop.counter }}. {{log.created_date}} by: {{log.created_by}}<br>
+    {{ forloop.counter }}. {{log.created_date}} by: {{log.created_by}} --> ({{log.created_date|timesince }} ago)<br>
     {{log.content}}<br>
+{% empty %}
+    There are no logs - yet!
 {% endfor %}
 
 <a href="{% url "student_log_add" student.pk %}">add to log</a>
