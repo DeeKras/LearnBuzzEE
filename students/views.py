@@ -11,16 +11,12 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import re
 from operator import attrgetter
-
+from django.utils import timezone
 
 
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
 from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog
 
-
-def hello(request):
-    print 'hello'
-    return render(request,'students/hello.html')
 
 
 
@@ -44,17 +40,24 @@ def student_retrieve(request):
     return render(request, template_name, context)
 
 def student_new_update(request, pk=None, student=None):
+    mode='new'
+
     if pk:
         student = get_object_or_404(Student, pk=pk)
-        # log_list = StudentLog.objects.filter(student_id=pk).order_by('-created_date')
+        mode='edit'
 
     if request.method == 'POST':
         form = StudentForm(request.POST, instance=student)
         if form.is_valid():
-            form.save()
+            if request.POST['submit'] == "Submit Student Information":
+                form.save()
             if request.POST['submit'] == "Submit Learning Plan":
-                 f = StudentLearningPlanLog(student=student,
+                f = form.save(commit=False)
+                f.currentplan_id +=1
+                f.save()
+                g = StudentLearningPlanLog(student=student,
                                        created_by = request.user,
+                                       plan_id = f.currentplan_id,
                                        mathplan_points = form.cleaned_data['mathplan_points'],
                                        mathplan_per = form.cleaned_data['mathplan_per'],
                                        mathplan_type = form.cleaned_data['mathplan_type'],
@@ -62,13 +65,16 @@ def student_new_update(request, pk=None, student=None):
                                        readingplan_per = form.cleaned_data['readingplan_per'],
                                        readingplan_type = form.cleaned_data['readingplan_type'])
 
-                 f.save()
+                g.save()
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     else:
         form = StudentForm(instance=student)
 
+
+
+
     template_name = 'students/student_form.html'
-    context = {'form': form, 'student': student}
+    context = {'form': form, 'student': student, 'mode':mode}
     return render(request, template_name, context)
 
 
@@ -159,6 +165,7 @@ def student_gainpoints(request, pk):
                 print 'must be the same as the type in the Reading Plan'
             f = StudentGainPoints(student=student,
                                   created_by = request.user,
+                                  plan_id = student.currentplan_id,
                                   math_source = form.cleaned_data['math_source'],
                                   math_source_details = form.cleaned_data['math_source_details'],
                                   math_amt = form.cleaned_data['math_amt'],
@@ -195,11 +202,29 @@ def student_gainpoints(request, pk):
 
 def student_gainpoints_list(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    learningplan_list = list(StudentLearningPlanLog.objects.filter(student=student))
-    points_list = list(StudentGainPoints.objects.filter(student=student))
-    object_list = sorted(learningplan_list + points_list, key=attrgetter('created_date'), reverse=True)
+    learningplan_list = StudentLearningPlanLog.objects.filter(student=student).order_by('-created_date')
+    points_list = StudentGainPoints.objects.filter(student=student).order_by('-created_date')
 
-    # object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
+    print student.lastname, student.firstname
+
+    for i, plan in enumerate(learningplan_list):
+        if i !=0:
+            print '{}: {} points per {} {}'.\
+                format(plan.created_date, plan.mathplan_points, plan.mathplan_per, plan.mathplan_type)
+            firstdate= learningplan_list[i-1].created_date
+        else:
+            print 'Current Learning Plan: {} points per {} {}'.\
+                format(plan.mathplan_points, plan.mathplan_per, plan.mathplan_type)
+            firstdate= timezone.now()
+        seconddate= learningplan_list[i].created_date
+
+        for points in points_list:
+            if seconddate < points.created_date <firstdate:
+                print "--", points.created_date, points.math_amt, points.math_type, points.math_source
+
+    # object_list = sorted(learningplan_list + points_list, key=attrgetter('created_date'), reverse=True)
+
+    object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
     total = points_list.count
 
     paginator = Paginator(object_list, 8, orphans=3)

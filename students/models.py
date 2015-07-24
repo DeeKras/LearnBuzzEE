@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
+from django.utils import timezone
+
+
 
 GROUPS_LIST = (
         ('A', 'Group A'),
@@ -51,6 +54,9 @@ class Student(models.Model):
     reading_points = models.PositiveIntegerField(default=0)
     reading_remaining = models.IntegerField(default=0)
 
+#current plan
+    currentplan_id = models.PositiveIntegerField(default=0)
+
     mathplan_points = models.PositiveIntegerField(null=True, blank=True)
     mathplan_per = models.PositiveIntegerField(null=True, blank=True)
     mathplan_type = models.CharField(max_length=2,
@@ -95,6 +101,7 @@ class StudentLearningPlanLog(models.Model):
 
     created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=30)
+    plan_id = models.PositiveIntegerField(null=True, blank=True)
 
     mathplan_points = models.PositiveIntegerField(null=True, blank=True)
     mathplan_per = models.PositiveIntegerField(null=True, blank=True)
@@ -112,6 +119,7 @@ class StudentGainPoints(models.Model):
 
     created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=30)
+    plan_id = models.PositiveIntegerField()
 
     math_source = models.TextField(blank=True)
     math_source_details = models.TextField(blank=True)
