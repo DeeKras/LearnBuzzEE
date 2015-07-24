@@ -8,7 +8,7 @@ Total results: {{ total }}
 <hr>
 {% for plan in learningplan_list %}
     <hr>
-    {% ifequal plan.plan_id learningplan_list|length %}
+    {% ifequal plan.plan_id student.currentplan_id %}
         <b>Current </b>
     {% endifequal %}
 

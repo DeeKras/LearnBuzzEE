@@ -25,7 +25,7 @@ from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanL
 #----------------------------------------------
 def student_retrieve(request):
 
-    student_list = Student.objects.all().order_by('firstname').order_by('lastname')
+    student_list = Student.objects.all().order_by('lastname', 'firstname')
     paginator = Paginator(student_list, 6, orphans=3)
 
     page = request.GET.get('page')
@@ -103,9 +103,6 @@ def student_search(request):
             student.result_type = "Contains"
 
         results = chain(s1, s2)
-
-
-        print dir(results)
 
         if len(s1) == 1:
             student = Student.objects.get(lastname__istartswith=request.GET['last'])
@@ -225,6 +222,7 @@ def student_gainpoints_list(request, pk):
     student = get_object_or_404(Student, pk=pk)
     learningplan_list = StudentLearningPlanLog.objects.filter(student=student).order_by('-created_date')
     points_list = StudentGainPoints.objects.filter(student=student).order_by('-created_date')
+
 
     print student.lastname, student.firstname
 
