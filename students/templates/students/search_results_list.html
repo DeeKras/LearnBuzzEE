@@ -1,0 +1,33 @@
+{% extends "students/base.html" %}
+{% block content %}
+    <b><h3>Results for <font color="gray">{{search}}</font>. </b></h3>
+    {% if results|length > 0 %}
+        <table>
+                <col width="80">
+                <col width="300">
+                <col width="100">
+                <col width="100">
+                <col width="100">
+                <col width="100">
+                <col width="100">
+                <col width="100">
+                <col width="100">
+                <col width="140">
+            {% for res in results %}
+                <tr>
+                    <td><font size="2" color="gray">{{res.result_type}}.</font></td>
+                    <td><b> {{res.lastname}} | {{ res.firstname }} |</b> Group {{res.group}} </td>
+                    <td><a href="{% url "student_edit" res.pk %}"><button>edit</button></a></td>
+                    <td><a href="{% url "student_delete" res.pk %}"><button>delete</button></a></td>
+                    <td><a href="{% url "student_log_add" res.pk %}"><button>add to log</button></a></td>
+                    <td><a href="{% url "student_log_list" res.pk %}"><button>show log list</button></a></td>
+                    <td><a href="{% url "student_gainpoints" res.pk %}"><button>gain points</button></a></td>
+                    <td><a href="{% url "student_spendpoints" res.pk %}"><button>spend points</button></a></td>
+                    <td><a href="{% url "student_gainpoints_list" res.pk %}"><button>show points</button></a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        No results. Try your search again.
+    {% endif %}
+{% endblock content %}
