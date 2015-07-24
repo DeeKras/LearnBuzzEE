@@ -12,6 +12,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import re
 from operator import attrgetter
 from django.utils import timezone
+from itertools import chain
 
 
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
@@ -90,13 +91,33 @@ def student_delete(request, pk):
 
 def student_search(request):
     if request.GET['last']:
-        student = Student.objects.get(lastname__startswith=request.GET['last'])
-        log_list = StudentLog.objects.filter(student_id=student.pk).order_by('-created_date')
-        form = StudentForm(instance=student)
+        s1 = Student.objects.filter(
+            Q(lastname__istartswith=request.GET['last'])).order_by('lastname', 'firstname')
+        for student in s1:
+            student.result_type = "Startswith"
 
-        template_name = 'students/student_form.html'
-        context = {'form': form, 'log_list': log_list, 'student': student}
-        return render(request, template_name, context)
+        s2= Student.objects.filter(
+            ~Q(lastname__istartswith=request.GET['last'])&
+            Q(lastname__icontains=request.GET['last'])).order_by('lastname', 'firstname')
+        for student in s2:
+            student.result_type = "Contains"
+
+        results = chain(s1, s2)
+
+
+        print dir(results)
+
+        if len(s1) == 1:
+            student = Student.objects.get(lastname__istartswith=request.GET['last'])
+            form = StudentForm(instance=student)
+            template_name = 'students/student_form.html'
+            context = {'form': form, 'student': student}
+            return render(request, template_name, context)
+        else:
+            template_name = 'students/search_results_list.html'
+            context = {'results': results, 'search': request.GET['last']}
+            return render(request, template_name, context)
+
     else:
         return HttpResponseRedirect('/')
 
@@ -227,8 +248,8 @@ def student_gainpoints_list(request, pk):
     object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
     total = points_list.count
 
-    paginator = Paginator(object_list, 8, orphans=3)
-
+    # paginator = Paginator(object_list, 8, orphans=3)
+    paginator = Paginator(points_list, 8, orphans=3)
     page = request.GET.get('page')
     try:
         object_list = paginator.page(page)
@@ -238,7 +259,8 @@ def student_gainpoints_list(request, pk):
         object_list = paginator.page(num_pages)
 
     template_name = 'students/student_gainpoints_list.html'
-    context = {'object_list': object_list, 'student': student, 'total': total}
+    context = {'object_list': object_list, 'student': student,
+               'total': total, 'points_list': points_list, 'learningplan_list': learningplan_list}
     return render(request, template_name, context)
 
 

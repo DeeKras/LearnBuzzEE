@@ -6,14 +6,34 @@
 Total results: {{ total }}
 
 <hr>
-{% for obj in object_list %}
-    ---------
-    {% if 'StudentLearningPlanLog' in obj %}
-        hello
-    {% endif %}
+{% for plan in learningplan_list %}
+    <hr>
+    {% ifequal plan.plan_id learningplan_list|length %}
+        <b>Current </b>
+    {% endifequal %}
+
+        <b>Learning Plan {{plan.plan_id}}:  </b>
+        {{plan.mathplan_points}} per {{plan.mathplan_per}} {{plan.get_mathplan_type_display}}
+        |                   {{plan.created_date |date:"d M Y  H:i"}} by {{plan.created_by}}<br>
+    {% for points in points_list %}
+        <table>
+            <col width="30">
+            <col width="200">
+            <col width="600">
+            {% ifequal plan.plan_id points.plan_id %}
+            <tr>
+                <td><b>{{forloop.counter}}. </b></td>
+                <td>{{points.created_date |date:"d M Y  H:i"}}</td>
+                <td>{{points.math_amt}} {{points.get_math_type_display}} from {{points.math_source}}</td>
+            </tr>
+
+        {% endifequal %}
+            </table>
+    {% endfor %}
 {% endfor %}
 
 <hr>
+{% comment %}
 {% for log in object_list %}
 
     <b>{{ forloop.counter0|add:object_list.start_index }}
@@ -65,6 +85,7 @@ Total results: {{ total }}
         {% endif %}
     </span>
 </div>
+{% endcomment %}
 {% endblock %}
 
 

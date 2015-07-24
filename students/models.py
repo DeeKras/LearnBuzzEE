@@ -105,11 +105,11 @@ class StudentLearningPlanLog(models.Model):
 
     mathplan_points = models.PositiveIntegerField(null=True, blank=True)
     mathplan_per = models.PositiveIntegerField(null=True, blank=True)
-    mathplan_type = models.CharField(max_length=2)
+    mathplan_type = models.CharField(max_length=2, choices= MATHPLAN_CHOICES)
 
     readingplan_points = models.PositiveIntegerField(null=True, blank=True)
     readingplan_per = models.PositiveIntegerField(null=True, blank=True)
-    readingplan_type = models.CharField(max_length=2)
+    readingplan_type = models.CharField(max_length=2, choices= READINGPLAN_CHOICES)
 
     def __unicode__(self):
         return '{}, {} learning plan on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
