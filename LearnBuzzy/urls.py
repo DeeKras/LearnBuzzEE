@@ -21,6 +21,11 @@ urlpatterns = [
     url(r'^points/spend/(?P<pk>\d+)$', 'students.views.student_spendpoints', name='student_spendpoints'),
     url(r'^points/list/(?P<pk>\d+)$', 'students.views.student_gainpoints_list', name='student_gainpoints_list'),
     url(r'^student/search/', 'students.views.student_search', name='student_search'),
+
+
+    #emails
+    # url(r'^email/preview/', 'students.emails.preview_email',name='preview_email'),
+    url(r'^email/preview/$', 'students.emails.preview_email', name="preview_email"),
     # url(r'^', include('students.urls')),
 
     ]

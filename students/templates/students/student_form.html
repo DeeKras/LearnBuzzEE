@@ -56,7 +56,7 @@
     <b>mode:</b> new
 {% else %}
     <b>mode:</b> edit
-    <form method="get"></form>
+        <form method="get"></form>
         <a href="{% url "student_log_add" student.pk %}"><button>add to log</button></a>
         <a href="{% url "student_log_list" student.pk %}"><button>show log list</button></a>
         <a href="{% url "student_gainpoints" student.pk %}"><button>gain points</button></a>
@@ -64,7 +64,4 @@
         <a href="{% url "student_delete" student.pk %}"><button>delete</button></a>
 {% endifequal %}
 <hr>
-
-
-
 {% endblock %}

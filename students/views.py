@@ -13,10 +13,13 @@ import re
 from operator import attrgetter
 from django.utils import timezone
 from itertools import chain
+import easygui
 
 
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
 from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog
+from .emails import create_learned_email, send_email, preview_email
+from .utils import get_display, MATHPLAN_CHOICES
 
 
 
@@ -95,32 +98,37 @@ def student_search(request):
             Q(lastname__istartswith=request.GET['last'])).order_by('lastname', 'firstname')
         for student in s1:
             student.result_type = "Startswith"
+        for s in s1:
+            print s
 
         s2= Student.objects.filter(
             ~Q(lastname__istartswith=request.GET['last'])&
             Q(lastname__icontains=request.GET['last'])).order_by('lastname', 'firstname')
         for student in s2:
             student.result_type = "Contains"
+        for s in s2:
+            print s
 
         results = chain(s1, s2)
+        print results
 
         if len(s1) == 1:
+            print '1'
             student = Student.objects.get(lastname__istartswith=request.GET['last'])
             form = StudentForm(instance=student)
             template_name = 'students/student_form.html'
             context = {'form': form, 'student': student}
-            return render(request, template_name, context)
         else:
+            print 'more than 1'
             template_name = 'students/search_results_list.html'
-            context = {'results': results, 'search': request.GET['last']}
-            return render(request, template_name, context)
+            context = {'results': results,  'search': request.GET['last']}
+        return render(request, template_name, context)
 
     else:
         return HttpResponseRedirect('/')
 
 
 def student_logcreate(request, pk):
-    print 'log create'
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
         form = StudentLogForm(request.POST, instance=student)
@@ -146,7 +154,6 @@ def student_loglist(request, pk):
      return render(request, template_name, context)
 
 def student_learningplan(request, pk):
-    print 'learning plan'
     student = get_object_or_404(Student, pk=pk)
     learningplan = Student.objects.get(pk=pk)
     form = StudentLearningPlanForm(instance=student)
@@ -163,7 +170,6 @@ def student_learningplan(request, pk):
                                        readingplan_points = cleaned_data['readingplan_points'],
                                        readingplan_per = cleaned_data['readingplan_per'],
                                        readingplan_type = cleaned_data['readingplan_type'])
-            print f
             f.save()
             return HttpResponseRedirect(reverse('student_edit'))
 
@@ -177,10 +183,6 @@ def student_gainpoints(request, pk):
     if request.method == 'POST':
         form = StudentGainPointsForm(request.POST, student=student)
         if form.is_valid():
-            if form.cleaned_data['math_type'] != '' and form.cleaned_data['math_type'] != student.mathplan_type:
-                print 'must be the same as the type in the Math Plan' #TODO - How to make this a Validation?
-            if form.cleaned_data['reading_type'] != '' and form.cleaned_data['reading_type'] != student.readingplan_type:
-                print 'must be the same as the type in the Reading Plan'
             f = StudentGainPoints(student=student,
                                   created_by = request.user,
                                   plan_id = student.currentplan_id,
@@ -195,28 +197,43 @@ def student_gainpoints(request, pk):
                                   )
             f.save() # TODO: how to do this with form.save()?
 
-            #add the points
-            mathplan_points = student.mathplan_points
-            mathplan_per = student.mathplan_per
-            mathplan_type = student.mathplan_type
+            add_points(student, f.math_amt)
 
-            print 'points {} | remaining {}'.format(student.math_points, student.math_remaining)
-            print 'math he did {}'.format(f.math_amt)
-            print 'math plan {} points per {} {}'.format(student.mathplan_points, student.mathplan_per, student.mathplan_type)
-            points_to_add = ((f.math_amt + student.math_remaining)/mathplan_per)*mathplan_points
+            #send email to caregiver
+            if request.POST['send_email'] == "email_yes":
+                email = 'deekras2@gmail.com' #will pull this from parent model
+                caregiver = 'dk' #will pull this from parent model
+                student_name = '{} {}'.format(student.firstname, student.lastname)
+                what_learned = '{} {} from {} {}'.\
+                    format(f.math_amt, get_display(MATHPLAN_CHOICES, f.math_type), f.math_source, f.math_source_details)
 
-            student.math_points += points_to_add
-            student.total_points +=points_to_add
-            remaining_to_add = ((f.math_amt + student.math_remaining)%mathplan_per)
-            student.math_remaining = remaining_to_add
-            student.save()
-            print 'points {} | remaining {}'.format(student.math_points, student.math_remaining)
+                reply = easygui.buttonbox(what_learned, "Send Email?", choices=["edit", "send", "don't send"])
+                if reply == 'send':
+                    send_email(create_learned_email(email, caregiver, student_name, what_learned))
+                    easygui.msgbox("Email about {} was sent".format(student_name), "Email")
+                elif reply == "don't send":
+                    easygui.msgbox("As your request, email was not sent", "Email")
+                else:
+                    return preview_email(request, create_learned_email(email, caregiver, student_name, what_learned))
 
+            else:
+                easygui.msgbox("As your request, email was not sent", "Email")
 
             return HttpResponseRedirect(reverse('student_list'))
     template_name = 'students/student_gainpoints.html'
     context = {'student' : student, 'form': form}
     return render(request, template_name, context)
+
+def add_points(student, math_amt):
+      mathplan_points = student.mathplan_points
+      mathplan_per = student.mathplan_per
+
+      points_to_add = ((math_amt + student.math_remaining)/mathplan_per)*mathplan_points
+      student.math_points += points_to_add
+      student.total_points +=points_to_add
+      remaining_to_add = ((math_amt + student.math_remaining)%mathplan_per)
+      student.math_remaining = remaining_to_add
+      student.save()
 
 def student_gainpoints_list(request, pk):
     student = get_object_or_404(Student, pk=pk)

@@ -6,32 +6,7 @@ from django.utils import timezone
 
 
 
-GROUPS_LIST = (
-        ('A', 'Group A'),
-        ('B', 'Group B'),
-        ('C', 'Group C'),
-        ('D', 'Group D')
-        )
-
-GENDER_CHOICES = (
-        ('M','Male'),
-        ('F','Female'),
-        )
-
-MATHPLAN_CHOICES = (
-        ('li', 'lines'),
-        ('ex','examples'),
-        )
-
-READINGPLAN_CHOICES = (
-        ('li', 'lines'),
-        ('pg','pages'),
-        ('ch', 'chapters'),
-        ('bk','books'),
-        )
-
-
-
+from .utils import GROUPS_LIST, GENDER_CHOICES, MATHPLAN_CHOICES, READINGPLAN_CHOICES
 
 class Student(models.Model):
     firstname = models.CharField(max_length=30)
@@ -72,6 +47,23 @@ class Student(models.Model):
 
     def __unicode__(self):
         return u'{}, {}'.format(self.lastname, self.firstname)
+
+class Email(models.Model):
+    student = models.ForeignKey(Student)
+    email_from = models.CharField(max_length=250)
+    email_to = models.EmailField()
+    email_cc = models.EmailField(blank=True)
+    email_subject = models.CharField(max_length=250)
+    email_body = models.TextField()
+
+    status = models.CharField(max_length=25, default='draft')
+
+    created_date = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=30)
+    sent_date = models.DateTimeField(null=True)
+
+    def __unicode__(self):
+        'email: status {}. created on {}'.format(status, created_date)
 
 class Parent(models.Model):
     student = models.ManyToManyField(Student)

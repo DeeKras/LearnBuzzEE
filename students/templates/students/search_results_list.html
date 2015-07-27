@@ -1,7 +1,7 @@
 {% extends "students/base.html" %}
 {% block content %}
     <b><h3>Results for <font color="gray">{{search}}</font>. </b></h3>
-    {% if results|length > 0 %}
+
         <table>
                 <col width="80">
                 <col width="300">
@@ -25,9 +25,9 @@
                     <td><a href="{% url "student_spendpoints" res.pk %}"><button>spend points</button></a></td>
                     <td><a href="{% url "student_gainpoints_list" res.pk %}"><button>show points</button></a></td>
                 </tr>
+            {% empty %}
+                No results. Try your search again.
             {% endfor %}
         </table>
-    {% else %}
-        No results. Try your search again.
-    {% endif %}
+
 {% endblock content %}
