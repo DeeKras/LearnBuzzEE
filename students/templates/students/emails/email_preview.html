@@ -1,0 +1,38 @@
+{% extends "students/base.html" %}
+{% block content %}
+<form  action={% url "preview_email" %} method=post>
+    {% csrf_token %}
+<table>
+    <col width="100">
+    <col width="700">
+    <tr>
+        <td>From:</td>
+        <td>{{from}}</td>
+    </tr>
+    <tr>
+        <td>To:</td>
+        <td>{{form.to}}</td>
+    </tr>
+    <tr>
+        <td>Subject:</td>
+        <td>{{form.subject}}</td>
+    </tr>
+</table>
+
+<hr>
+{{html|safe}}
+<hr>
+
+<h3>Edit - as text</h3>
+{{form.body_no_html}}
+<hr>
+<h3>Edit - as html </h3>
+{{form.body_as_html}}
+
+    <button type="submit" name="submit" value="send_edited">I reviewed, please send</button>
+    <button type="submit" name="submit" value="send_original">Please send the original</button>
+    <button type="submit" name="submit" value="no_send">Don't send</button>
+</form>
+{% endblock content %}
+
+{{form.errors}}
