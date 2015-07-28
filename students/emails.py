@@ -1,7 +1,12 @@
+from django.shortcuts import render, HttpResponseRedirect
+from django.core.urlresolvers import reverse
+
 import requests
-from django.shortcuts import render
+import easygui
+from datetime import datetime
 
 from .forms import EditEmailForm
+from .models import Email
 from .utils import strip_html
 
 key = 'key-5b043e50a4c56d9ff6b8c73b5d23c3e4'
@@ -9,7 +14,7 @@ sandbox = 'sandboxa8420b597da7412d906e170e6e810830.mailgun.org'
 
 request_url = 'https://api.mailgun.net/v2/{0}/messages'.format(sandbox)
 
-def create_learned_email(email, caregiver, student_name, what_learned):
+def create_learned_email(request, student, email, caregiver, student_name, what_learned):
     body = 'Hello {}:<br>'.format(caregiver)
     body = body + \
             "This is to inform you that <b>{} has learned {}</b>. <br>Please encourage him to keep it up!".\
@@ -18,81 +23,84 @@ def create_learned_email(email, caregiver, student_name, what_learned):
     email_to = email
     email_subject = 'Good news about {}'.format(student_name)
     email_html = "<html> {} </html>".format(body)
-    return email_from, email_to, email_subject, email_html
 
-def send_email(email_data):
-    email_from, email_to, email_subject, email_html = email_data
+    return create_email_log(request, student, email_from, email_to, email_subject, email_html)
 
-    email_data = {'from': email_from,
-            'to': email_to,
-            'subject': email_subject,
-            'html': email_html}
+def create_email_log(request, student, email_from, email_to, email_subject, email_html):
+    email = Email(student=student,
+                  email_from=email_from,
+                  email_to=email_to,
+                  email_subject=email_subject,
+                  email_body=email_html,
+                  created_by=request.user)
+    email.save()
+    return email.id
+
+
+def email_no_send(request, email_id):
+    email = Email.objects.get(id=email_id)
+
+    email.status = "No Send"
+    email.save()
+
+    student_name = '{} {}'.format(email.student.firstname, email.student.lastname)
+    easygui.msgbox("Email about {} was NOT sent".format(student_name), "Email")
+
+    return HttpResponseRedirect(reverse('student_list'))
+
+def email_send(request, email_id):
+    email = Email.objects.get(id=email_id)
+
+    email_data = {'from': email.email_from,
+            'to': email.email_to,
+            'subject': email.email_subject,
+            'html': email.email_body}
+
     request = requests.post(request_url,
         auth=('api', key),
         data=email_data)
 
+    student_name = '{} {}'.format(email.student.firstname, email.student.lastname)
+    easygui.msgbox("Email about {} was sent".format(student_name), "Email")
+
+    email.status = 'sent'
+    email.sent_date = datetime.now()
+    email.save()
+
     print 'Status: {0}'.format(request.status_code)
     print 'Body:   {0}'.format(request.text)
 
+    return HttpResponseRedirect(reverse('student_list'))
 
-def preview_email(request, email_data):
-    if 'submit' not in request.POST:
-        print 'preview mode'
-        email_from, email_to, email_subject, email_html = email_data
-        body_no_html = strip_html(email_html)
+def email_preview(request, email_id):
+    email = Email.objects.get(id=email_id)
+    if request.POST['submit'] == 'no_send':
+        return email_no_send(request, email_id)
+    elif request.POST['submit'] == 'send':
+        if request.POST['body_as_html']:
+            email.email_body = request.POST['body_as_html']
+        if request.POST['subject']:
+            email.email_subject = request.POST['subject']
+        if request.POST['to']:
+            email.email_to = request.POST['to']
+        email.save()
+
+        return email_send(request,email_id)
+
+    else:
+        body_no_html = strip_html(email.email_body)
+
         template_name = 'students/emails/email_preview.html'
         context = {'form': EditEmailForm(initial={
-                                            'to': email_to,
-                                            'subject': email_subject,
-                                            'body_as_html': email_html,
-                                            'body_no_html': body_no_html}),
-                   'from': email_from,
-                   'html': email_html
-            }
+                                                'to': email.email_to,
+                                                'subject': email.email_subject,
+                                                'body_as_html': email.email_body,
+                                                'body_no_html': body_no_html}),
+                   'from': email.email_from,
+                   'html': email.email_body,
+                   'email_id':email_id}
 
-    elif request.POST['submit'] == 'send_edited':
-        form = EditEmailForm(request.POST)
-        if form.is_valid():
-            email_data = ('LEARNBUZZY Mrs. K.<dee@deekras.com>',
-                          cleaned_data['to'],
-                          cleaned_data['subject'],
-                          cleaned_data['body_as_html']
-            )
-    elif request.POST['submit'] == 'send_original':
-        email_data = ('LEARNBUZZY Mrs. K.<dee@deekras.com>',
-                         request.session['to'],
-                         request.session['subject'],
-                         request.session['body_as_html']
-            )
-        return send_email(email_data)
-    print 'referer', request.META.get('HTTP_REFERER')
-    print request.POST
+        return render(request, template_name, context)
 
-    return render(request, template_name, context)
 
-def edited_email(request):
-#     print 'referer', request.META.get('HTTP_REFERER')
-    pass
-#     if request.POST['submit'] == 'send_edited':
-#         print 'send edited'
-#         form = EditEmailForm(request.POST)
-#         print 'form data {}'.format(form.data['submit'])
-#         if form.is_valid():
-#             print 'valid'
-#             email_data = ('LEARNBUZZY Mrs. K.<dee@deekras.com>',
-#                           cleaned_data['to'],
-#                           cleaned_data['subject'],
-#                           cleaned_data['body_as_html']
-#             )
-#             print email_data
-#             return send_email(email_data)
-#         else:
-#             print 'not valid'
-#     elif request.POST['submit'] == 'send_original':
-#         email_data = ('LEARNBUZZY Mrs. K.<dee@deekras.com>',
-#                          request.session['to'],
-#                          request.session['subject'],
-#                          request.session['body_as_html']
-#             )
-#         return send_email(email_data)
-    #redirect to student's edit page
+

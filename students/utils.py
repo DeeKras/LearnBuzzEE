@@ -1,4 +1,4 @@
-GROUPS_LIST = (
+GROUPS_LIST =    (
         ('A', 'Group A'),
         ('B', 'Group B'),
         ('C', 'Group C'),

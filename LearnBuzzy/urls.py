@@ -1,5 +1,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 
 
 urlpatterns = [
@@ -25,7 +27,9 @@ urlpatterns = [
 
     #emails
     # url(r'^email/preview/', 'students.emails.preview_email',name='preview_email'),
-    url(r'^email/preview/$', 'students.emails.preview_email', name="preview_email"),
+    url(r'^email/preview/(?P<email_id>\d+)$', 'students.emails.email_preview', name="email_preview"),
     # url(r'^', include('students.urls')),
 
     ]
+
+urlpatterns += staticfiles_urlpatterns()

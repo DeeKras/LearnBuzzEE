@@ -1,12 +1,15 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Student,  StudentLog, StudentGainPoints, \
-            GENDER_CHOICES, GROUPS_LIST, READINGPLAN_CHOICES, MATHPLAN_CHOICES
+from .models import Student,  StudentLog, StudentGainPoints, Group,\
+            GENDER_CHOICES,  READINGPLAN_CHOICES, MATHPLAN_CHOICES
 
 
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
+
+        group = forms.ModelChoiceField(queryset=Group.objects.all(),
+                                       widget=forms.Select(attrs={'class':'selector'}))
         fields = ['firstname', 'lastname', 'gender',
                   'avatar', 'group',
                   'mathplan_points', 'mathplan_per', 'mathplan_type',
@@ -17,7 +20,6 @@ class StudentForm(forms.ModelForm):
             'lastname': forms.TextInput(
                 attrs={'placeholder':'Last Name', 'class':'form-control'}),
             'gender': forms.RadioSelect(choices=GENDER_CHOICES),
-            'group': forms.RadioSelect(choices=GROUPS_LIST),
             'mathplan_points':forms.Textarea(attrs={'cols':6, 'rows':1}),
             'mathplan_per':forms.Textarea(attrs={'cols': 6, 'rows': 1}),
             'mathplan_type': forms.Select(choices= MATHPLAN_CHOICES),
@@ -53,7 +55,8 @@ class StudentGainPointsForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(StudentGainPointsForm, self).clean()
         errorlist = {}
-        print '{}? {}'.format(cleaned_data['math_type'], self.student.mathplan_type )
+        print 'in clean'
+        # print '{}? {}'.format(cleaned_data['math_type'], self.student.mathplan_type )
         if cleaned_data['math_type'] != self.student.mathplan_type:
                 errorlist['math_type']='the math type must match the one in the Math Plan'
         elif cleaned_data['math_amt'] != None \

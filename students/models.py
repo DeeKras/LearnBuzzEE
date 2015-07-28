@@ -4,9 +4,30 @@ from django.core.exceptions import ValidationError
 
 from django.utils import timezone
 
+from .utils import GENDER_CHOICES, MATHPLAN_CHOICES, READINGPLAN_CHOICES
 
 
-from .utils import GROUPS_LIST, GENDER_CHOICES, MATHPLAN_CHOICES, READINGPLAN_CHOICES
+class Group(models.Model):
+    groupname = models.CharField(max_length=30)
+
+    class Meta:
+        verbose_name_plural = 'groups'
+
+    def __unicode__(self):
+        return u'{} '.format(self.groupname)
+
+class Educator(models.Model):
+    called = models.CharField(max_length=100)
+    email_from = models.CharField(max_length=100)
+    email_signature = models.TextField()
+    group = models.ManyToManyField(Group)
+
+    class Meta:
+        verbose_name_plural = 'educators'
+
+    def __unicode__(self):
+        return u'{}'.format(self.called)
+
 
 class Student(models.Model):
     firstname = models.CharField(max_length=30)
@@ -14,9 +35,8 @@ class Student(models.Model):
     gender = models.CharField(max_length=1,
                              choices=GENDER_CHOICES,
                              blank=False)
+    group = models.ForeignKey(Group)
     avatar = models.ImageField(upload_to='thumbpath', blank=True)
-    group = models.CharField(max_length=1,
-                             choices=GROUPS_LIST)
 
     start_date = models.DateField(auto_now_add=True)
     added_how = models.CharField(max_length=100)
@@ -46,7 +66,7 @@ class Student(models.Model):
         verbose_name_plural = 'students'
 
     def __unicode__(self):
-        return u'{}, {}'.format(self.lastname, self.firstname)
+        return u'{}: {}, {}'.format(self.pk, self.lastname, self.firstname)
 
 class Email(models.Model):
     student = models.ForeignKey(Student)
@@ -60,10 +80,10 @@ class Email(models.Model):
 
     created_date = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=30)
-    sent_date = models.DateTimeField(null=True)
+    sent_date = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
-        'email: status {}. created on {}'.format(status, created_date)
+        return 'email: status {}. created on {}'.format(self.status, self.created_date)
 
 class Parent(models.Model):
     student = models.ManyToManyField(Student)

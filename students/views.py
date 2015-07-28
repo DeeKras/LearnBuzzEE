@@ -14,11 +14,12 @@ from operator import attrgetter
 from django.utils import timezone
 from itertools import chain
 import easygui
+from copy import deepcopy
 
 
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
 from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog
-from .emails import create_learned_email, send_email, preview_email
+from .emails import create_learned_email, email_preview, email_send, email_no_send
 from .utils import get_display, MATHPLAN_CHOICES
 
 
@@ -46,40 +47,91 @@ def student_retrieve(request):
 def student_new_update(request, pk=None, student=None):
     mode='new'
 
-    if pk:
+    if pk: #if is an edit
         student = get_object_or_404(Student, pk=pk)
         mode='edit'
+        print student.mathplan_points
 
+    #if it is an edit or new with data
     if request.method == 'POST':
         form = StudentForm(request.POST, instance=student)
-        if form.is_valid():
-            if request.POST['submit'] == "Submit Student Information":
-                form.save()
-            if request.POST['submit'] == "Submit Learning Plan":
-                f = form.save(commit=False)
-                f.currentplan_id +=1
-                f.save()
-                g = StudentLearningPlanLog(student=student,
-                                       created_by = request.user,
-                                       plan_id = f.currentplan_id,
-                                       mathplan_points = form.cleaned_data['mathplan_points'],
-                                       mathplan_per = form.cleaned_data['mathplan_per'],
-                                       mathplan_type = form.cleaned_data['mathplan_type'],
-                                       readingplan_points = form.cleaned_data['readingplan_points'],
-                                       readingplan_per = form.cleaned_data['readingplan_per'],
-                                       readingplan_type = form.cleaned_data['readingplan_type'])
 
-                g.save()
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        if mode == 'new' and form.is_valid():
+            f = form.save()
+            print 'saving new'
+            student = Student.objects.get(pk=f.id)
+            add_LearningPlanLog(request, form, student, mode)
+        elif mode == 'edit' and form.is_valid():
+            print 'in edit'
+            old = get_object_or_404(Student, pk=pk)
+            print old.mathplan_points
+            print '{} ? {}'.format(old.mathplan_points, form.cleaned_data['mathplan_points'])
+
+            add_LearningPlanLog(request, form, student, mode, old )
+            form.save()
+
+        print student.id
+        return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
     else:
+        #it is a get
         form = StudentForm(instance=student)
-
-
-
 
     template_name = 'students/student_form.html'
     context = {'form': form, 'student': student, 'mode':mode}
     return render(request, template_name, context)
+
+
+def add_LearningPlanLog(request, form,  student, mode, old= None):
+    #if not all learning plan == None
+    empty = (form.cleaned_data['mathplan_points'] == None and \
+            form.cleaned_data['mathplan_per'] == None and  \
+            form.cleaned_data['mathplan_type'] == '' and \
+            form.cleaned_data['readingplan_points'] == None and \
+            form.cleaned_data['readingplan_per'] == None and \
+            form.cleaned_data['readingplan_type'] == '')
+    print form.cleaned_data
+    print form.cleaned_data['mathplan_points'] == None
+    print form.cleaned_data['mathplan_per'] == None
+    print form.cleaned_data['mathplan_type'] == ''
+    print form.cleaned_data['readingplan_points'] == None
+    print form.cleaned_data['readingplan_per'] == None
+    print  form.cleaned_data['readingplan_type'] == ''
+    print '-'*7
+    print empty
+
+    changes = False
+    if old != None:
+        changes = (old.mathplan_points != form.cleaned_data['mathplan_points'] or \
+               old.mathplan_per != form.cleaned_data['mathplan_per'] or \
+               old.mathplan_type != form.cleaned_data['mathplan_type']or \
+               old.readingplan_points != form.cleaned_data['readingplan_points'] or \
+               old.readingplan_per != form.cleaned_data['readingplan_per'] or \
+               old.readingplan_type != form.cleaned_data['readingplan_type'])
+
+        print old.lastname
+        print 'changes {}'.format(changes)
+    if not empty:
+        print 'not empty'
+        print mode
+        if mode == 'new' or changes:
+           print 'ready to save'
+           student.currentplan_id +=1
+           student.save()
+           g = StudentLearningPlanLog(student=old,
+                                        created_by = request.user,
+                                        plan_id = student.currentplan_id,
+                                        mathplan_points = form.cleaned_data['mathplan_points'],
+                                        mathplan_per = form.cleaned_data['mathplan_per'],
+                                        mathplan_type = form.cleaned_data['mathplan_type'],
+                                        readingplan_points = form.cleaned_data['readingplan_points'],
+                                        readingplan_per = form.cleaned_data['readingplan_per'],
+                                        readingplan_type = form.cleaned_data['readingplan_type'])
+
+           g.save()
+           print g.created_by
+           print g .plan_id
+           print g.mathplan_points
+           print form.cleaned_data['mathplan_points']
 
 
 def student_delete(request, pk):
@@ -183,6 +235,7 @@ def student_gainpoints(request, pk):
     if request.method == 'POST':
         form = StudentGainPointsForm(request.POST, student=student)
         if form.is_valid():
+        # create log of Gain Points
             f = StudentGainPoints(student=student,
                                   created_by = request.user,
                                   plan_id = student.currentplan_id,
@@ -197,29 +250,27 @@ def student_gainpoints(request, pk):
                                   )
             f.save() # TODO: how to do this with form.save()?
 
+        # Add points to Student
             add_points(student, f.math_amt)
 
-            #send email to caregiver
-            if request.POST['send_email'] == "email_yes":
-                email = 'deekras2@gmail.com' #will pull this from parent model
-                caregiver = 'dk' #will pull this from parent model
-                student_name = '{} {}'.format(student.firstname, student.lastname)
-                what_learned = '{} {} from {} {}'.\
+        #Create log of Email
+            email = 'deekras2@gmail.com' #will pull this from parent model
+            caregiver = 'dk' #will pull this from parent model
+            student_name = '{} {}'.format(student.firstname, student.lastname)
+            what_learned = '{} {} from {} {}'.\
                     format(f.math_amt, get_display(MATHPLAN_CHOICES, f.math_type), f.math_source, f.math_source_details)
+            email_id = create_learned_email(request, student, email, caregiver, student_name, what_learned)
+            print email_id
 
-                reply = easygui.buttonbox(what_learned, "Send Email?", choices=["edit", "send", "don't send"])
-                if reply == 'send':
-                    send_email(create_learned_email(email, caregiver, student_name, what_learned))
-                    easygui.msgbox("Email about {} was sent".format(student_name), "Email")
-                elif reply == "don't send":
-                    easygui.msgbox("As your request, email was not sent", "Email")
-                else:
-                    return preview_email(request, create_learned_email(email, caregiver, student_name, what_learned))
+        #Email - Send, Don't Send, Preview
+            if request.POST['submit'] == 'send':
+                return email_send(request, email_id)
+            elif request.POST['submit'] == 'no_send':
+                return email_no_send(request, email_id)
+            elif request.POST['submit'] == 'preview':
+                return email_preview(request, email_id)
 
-            else:
-                easygui.msgbox("As your request, email was not sent", "Email")
-
-            return HttpResponseRedirect(reverse('student_list'))
+    # it's a GET
     template_name = 'students/student_gainpoints.html'
     context = {'student' : student, 'form': form}
     return render(request, template_name, context)

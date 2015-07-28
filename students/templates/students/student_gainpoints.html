@@ -28,9 +28,6 @@
     </table>
 
     Did {{form.math_amt}} of [choose type] {{form.math_type}}<br>
-    Send email?
-    <input type="radio" name="send_email" value="email_yes" checked> Yes
-    <input type="radio" name="send_email" value="email_no" > No<br>
 
     <hr>
 <h3>Adding Reading Points</h3>
@@ -55,7 +52,10 @@
 
     Did {{form.reading_amt}} of [choose type] {{form.reading_type}}
 <hr>
-    <input type="submit" value="Submit" />
+
+    <button type="submit" name="submit" value="send">Save & Send email</button>
+    <button type="submit" name="submit" value="no_send">Save & Don't Send email </button>
+    <button type="submit" name="submit" value="preview">Save & Preview email</button>
 
     {{form.errors}}
 
