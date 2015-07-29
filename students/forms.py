@@ -32,37 +32,25 @@ class StudentForm(forms.ModelForm):
         cleaned_data = super(StudentForm, self).clean()
         errorlist = {}
 
-        print 'in clean'
         msg = "you must enter: "
-        print 'points', cleaned_data['mathplan_points']
-        print 'type', cleaned_data['mathplan_type']
-        print 'per', cleaned_data['mathplan_per']
-        print cleaned_data['mathplan_points'] != None
-        print cleaned_data['mathplan_type'] != ''
-        print cleaned_data['mathplan_per'] != None
         if cleaned_data['mathplan_points'] != None \
-            or cleaned_data['mathplan_type'] != '' \
-            or cleaned_data['mathplan_per'] != None:
-                print 'need error message'
+            or cleaned_data['mathplan_per'] != None \
+            or cleaned_data['mathplan_type'] != '':
                 if cleaned_data['mathplan_points'] == None:
-                    print 'points error'
                     errorlist['mathplan_points']= msg + 'number of points'
                 if cleaned_data['mathplan_per'] == None:
-                    print 'per error'
                     errorlist['mathplan_per']= msg +'number of units'
                 if cleaned_data['mathplan_type'] == '':
-                    print 'type error'
                     errorlist['mathplan_type']= msg + 'type of unit'
-        # if cleaned_data['reading_amt'] != None \
-        #     or cleaned_data['reading_type'] != '' \
-        #     or cleaned_data['reading_source'] != '':
-        #         if cleaned_data['reading_source'] == '':
-        #             errorlist['reading_source']='must enter reading source'
-        #         if cleaned_data['reading_amt'] == None:
-        #             errorlist['reading_amt']='must enter reading amt'
-        #         if cleaned_data['reading_type'] == '':
-        #             errorlist['reading_type']='must enter reading type'
-        print errorlist
+        if cleaned_data['readingplan_points'] != None \
+            or cleaned_data['readingplan_per'] != None \
+            or cleaned_data['readingplan_type'] != '':
+                if cleaned_data['readingplan_points'] == None:
+                    errorlist['readingplan_points']= msg + 'number of points'
+                if cleaned_data['readingplan_per'] == None:
+                    errorlist['readingplan_per']= msg +'number of units'
+                if cleaned_data['readingplan_type'] == '':
+                    errorlist['readingplan_type']= msg + 'type of unit'
         raise ValidationError(errorlist)
 
 class StudentLogForm(forms.ModelForm):
@@ -92,27 +80,32 @@ class StudentGainPointsForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(StudentGainPointsForm, self).clean()
         errorlist = {}
-        if cleaned_data['math_type'] != self.student.mathplan_type:
+
+        msg = "you must enter: "
+
+        if cleaned_data['math_type'] != '' and cleaned_data['math_type'] != self.student.mathplan_type:
                 errorlist['math_type']='the math type must match the one in the Math Plan'
         elif cleaned_data['math_amt'] != None \
             or cleaned_data['math_type'] != '' \
             or cleaned_data['math_source'] != '':
                 if cleaned_data['math_source'] == '':
-                    errorlist['math_source']='must enter math source'
+                    errorlist['math_source']= msg + 'math source'
                 if cleaned_data['math_amt'] == None:
-                    errorlist['math_amt']='must enter math amt'
+                    errorlist['math_amt']= msg + 'math amt'
                 if cleaned_data['math_type'] == '':
-                    print cleaned_data['math_type']
-                    errorlist['math_type']='must enter math type -------------'
-        if cleaned_data['reading_amt'] != None \
+                    errorlist['math_type']= msg + 'math type'
+
+        if cleaned_data['reading_type'] and cleaned_data['reading_type'] != self.student.readingplan_type:
+                errorlist['reading_type']='the reading type must match the one in the Reading Plan'
+        elif cleaned_data['reading_amt'] != None \
             or cleaned_data['reading_type'] != '' \
             or cleaned_data['reading_source'] != '':
                 if cleaned_data['reading_source'] == '':
-                    errorlist['reading_source']='must enter reading source'
+                    errorlist['reading_source']= msg + 'reading source'
                 if cleaned_data['reading_amt'] == None:
-                    errorlist['reading_amt']='must enter reading amt'
+                    errorlist['reading_amt']= msg + 'reading amt'
                 if cleaned_data['reading_type'] == '':
-                    errorlist['reading_type']='must enter reading type'
+                    errorlist['reading_type']= msg + 'reading type'
         raise ValidationError(errorlist)
 
 class EditEmailForm(forms.Form):

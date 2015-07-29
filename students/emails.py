@@ -7,7 +7,9 @@ from datetime import datetime
 
 from .forms import EditEmailForm
 from .models import Email
-from .utils import strip_html, get_display, MATHPLAN_CHOICES
+from .utils import strip_html, get_display, \
+    MATHPLAN_CHOICES, READINGPLAN_CHOICES,\
+    gender_he_she, gender_him_her
 
 key = 'key-5b043e50a4c56d9ff6b8c73b5d23c3e4'
 sandbox = 'sandboxa8420b597da7412d906e170e6e810830.mailgun.org'
@@ -17,16 +19,30 @@ request_url = 'https://api.mailgun.net/v2/{0}/messages'.format(sandbox)
 
 def create_learned_email(request, student, f):
     caregiver = 'dk' #will pull this from parent model
-    signature = "your child'student teacher" #will pull this from the teacher
+    signature = "your child's teacher" #will pull this from the teacher
 
     body = 'Hello {}:<br>'.format(caregiver)
-    body += "This is to inform you that <b>{} {} has learned {} {} from {} {}</b>. <br>Please encourage him to keep it up! <br>". \
-                format(student.firstname,
-                       student.lastname,
-                       f.math_amt,
-                       get_display(MATHPLAN_CHOICES, f.math_type),
-                       f.math_source,
-                       f.math_source_details)
+    body += "This is a progress report about {} {}. <br> I am so happy to share that ".format(
+                    student.firstname, student.lastname)
+
+    if f.math_amt != None:
+        body += "in <b>MATH, {} has done {} {} from {} {}</b>".format(
+                     gender_he_she(student.gender),
+                     f.math_amt,
+                     get_display(MATHPLAN_CHOICES, f.math_type),
+                     f.math_source,
+                     f.math_source_details)
+    if f.math_amt != None and f.reading_amt != None:
+        body += "<br> and "
+    if f.reading_amt != None:
+        body += "in <b>READING, {} has read {} {} from {} {}</b>".format(
+                     gender_he_she(student.gender),
+                     f.reading_amt,
+                     get_display(READINGPLAN_CHOICES, f.reading_type),
+                     f.reading_source,
+                     f.reading_source_details)
+    body += ". <br>Please encourage {} to keep it up! <br>". format(
+                    gender_him_her(student.gender))
     body += signature
 
     email_from = 'LEARNBUZZY Mrs. K.<dee@deekras.com>' # will pull this from the teacher

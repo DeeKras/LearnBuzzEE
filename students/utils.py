@@ -33,3 +33,9 @@ def strip_html(html):
         no_tags = tag_re.sub('', html)
         ready_for_web = cgi.escape(no_tags)
         return ready_for_web
+
+def gender_him_her(gender):
+    return 'him' if gender == "M" else 'her'
+
+def gender_he_she(gender):
+    return 'he' if gender == "M" else 'she'

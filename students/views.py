@@ -173,6 +173,7 @@ def student_loglist(request, pk):
 def student_gainpoints(request, pk):
     student = get_object_or_404(Student, pk=pk)
     form = StudentGainPointsForm(instance=student)
+
     if request.method == 'POST':
         form = StudentGainPointsForm(request.POST, student=student)
         if form.is_valid():
@@ -192,10 +193,9 @@ def student_gainpoints(request, pk):
             f.save() # TODO: how to do this with form.save()?
 
         # Add points to Student
-            add_points(student, f.math_amt)
+            add_points(student, f.math_amt, f.reading_amt)
         # create the email data
             email_id = create_learned_email(request, student, f)
-
         #Email - Send, Don't Send, Preview
             if request.POST['submit'] == 'send':
                 return email_send(request, email_id)
@@ -204,20 +204,30 @@ def student_gainpoints(request, pk):
             elif request.POST['submit'] == 'preview':
                 return email_preview(request, email_id)
 
-    # it's a GET
     template_name = 'students/student_gainpoints.html'
     context = {'student' : student, 'form': form}
     return render(request, template_name, context)
 
-def add_points(student, math_amt):
-      mathplan_points = student.mathplan_points
-      mathplan_per = student.mathplan_per
+def add_points(student, math_amt=0, reading_amt=0):
+      if math_amt != None:
+        mathplan_points = student.mathplan_points
+        mathplan_per = student.mathplan_per
 
-      points_to_add = ((math_amt + student.math_remaining)/mathplan_per)*mathplan_points
-      student.math_points += points_to_add
-      student.total_points +=points_to_add
-      remaining_to_add = ((math_amt + student.math_remaining)%mathplan_per)
-      student.math_remaining = remaining_to_add
+        points_to_add = ((math_amt + student.math_remaining)/mathplan_per)*mathplan_points
+        student.math_points += points_to_add
+        student.total_points +=points_to_add
+        remaining_to_add = ((math_amt + student.math_remaining)%mathplan_per)
+        student.math_remaining = remaining_to_add
+
+      if reading_amt != None:
+        readingplan_points = student.readingplan_points
+        readingplan_per = student.readingplan_per
+
+        points_to_add = ((reading_amt + student.reading_remaining)/readingplan_per)*readingplan_points
+        student.reading_points += points_to_add
+        student.total_points +=points_to_add
+        remaining_to_add = ((reading_amt + student.reading_remaining)%readingplan_per)
+        student.reading_remaining = remaining_to_add
       student.save()
 
 def student_gainpoints_list(request, pk):
