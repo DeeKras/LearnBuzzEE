@@ -28,6 +28,43 @@ class StudentForm(forms.ModelForm):
             'readingplan_type': forms.Select(choices= READINGPLAN_CHOICES)
         }
 
+    def clean(self):
+        cleaned_data = super(StudentForm, self).clean()
+        errorlist = {}
+
+        print 'in clean'
+        msg = "you must enter: "
+        print 'points', cleaned_data['mathplan_points']
+        print 'type', cleaned_data['mathplan_type']
+        print 'per', cleaned_data['mathplan_per']
+        print cleaned_data['mathplan_points'] != None
+        print cleaned_data['mathplan_type'] != ''
+        print cleaned_data['mathplan_per'] != None
+        if cleaned_data['mathplan_points'] != None \
+            or cleaned_data['mathplan_type'] != '' \
+            or cleaned_data['mathplan_per'] != None:
+                print 'need error message'
+                if cleaned_data['mathplan_points'] == None:
+                    print 'points error'
+                    errorlist['mathplan_points']= msg + 'number of points'
+                if cleaned_data['mathplan_per'] == None:
+                    print 'per error'
+                    errorlist['mathplan_per']= msg +'number of units'
+                if cleaned_data['mathplan_type'] == '':
+                    print 'type error'
+                    errorlist['mathplan_type']= msg + 'type of unit'
+        # if cleaned_data['reading_amt'] != None \
+        #     or cleaned_data['reading_type'] != '' \
+        #     or cleaned_data['reading_source'] != '':
+        #         if cleaned_data['reading_source'] == '':
+        #             errorlist['reading_source']='must enter reading source'
+        #         if cleaned_data['reading_amt'] == None:
+        #             errorlist['reading_amt']='must enter reading amt'
+        #         if cleaned_data['reading_type'] == '':
+        #             errorlist['reading_type']='must enter reading type'
+        print errorlist
+        raise ValidationError(errorlist)
+
 class StudentLogForm(forms.ModelForm):
     class Meta:
         model = StudentLog
@@ -55,8 +92,6 @@ class StudentGainPointsForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(StudentGainPointsForm, self).clean()
         errorlist = {}
-        print 'in clean'
-        # print '{}? {}'.format(cleaned_data['math_type'], self.student.mathplan_type )
         if cleaned_data['math_type'] != self.student.mathplan_type:
                 errorlist['math_type']='the math type must match the one in the Math Plan'
         elif cleaned_data['math_amt'] != None \

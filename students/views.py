@@ -45,36 +45,27 @@ def student_retrieve(request):
     return render(request, template_name, context)
 
 def student_new_update(request, pk=None, student=None):
-    mode='new'
-
     if pk: #if is an edit
         student = get_object_or_404(Student, pk=pk)
+        form = StudentForm(instance=student)
         mode='edit'
-        print student.mathplan_points
+    else:
+        form = StudentForm()
+        mode = 'new'
 
     #if it is an edit or new with data
     if request.method == 'POST':
         form = StudentForm(request.POST, instance=student)
 
-        if mode == 'new' and form.is_valid():
-            f = form.save()
-            print 'saving new'
-            student = Student.objects.get(pk=f.id)
-            add_LearningPlanLog(request, form, student, mode)
-        elif mode == 'edit' and form.is_valid():
-            print 'in edit'
-            old = get_object_or_404(Student, pk=pk)
-            print old.mathplan_points
-            print '{} ? {}'.format(old.mathplan_points, form.cleaned_data['mathplan_points'])
-
-            add_LearningPlanLog(request, form, student, mode, old )
-            form.save()
-
-        print student.id
-        return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
-    else:
-        #it is a get
-        form = StudentForm(instance=student)
+        if form.is_valid():
+            if mode == 'new':
+                student = form.save()
+                add_LearningPlanLog(request, form, student, mode)
+            elif mode == 'edit':
+                old = get_object_or_404(Student, pk=pk)
+                add_LearningPlanLog(request, form, student, mode, old )
+                form.save()
+            return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
 
     template_name = 'students/student_form.html'
     context = {'form': form, 'student': student, 'mode':mode}
@@ -82,22 +73,12 @@ def student_new_update(request, pk=None, student=None):
 
 
 def add_LearningPlanLog(request, form,  student, mode, old= None):
-    #if not all learning plan == None
     empty = (form.cleaned_data['mathplan_points'] == None and \
             form.cleaned_data['mathplan_per'] == None and  \
             form.cleaned_data['mathplan_type'] == '' and \
             form.cleaned_data['readingplan_points'] == None and \
             form.cleaned_data['readingplan_per'] == None and \
             form.cleaned_data['readingplan_type'] == '')
-    print form.cleaned_data
-    print form.cleaned_data['mathplan_points'] == None
-    print form.cleaned_data['mathplan_per'] == None
-    print form.cleaned_data['mathplan_type'] == ''
-    print form.cleaned_data['readingplan_points'] == None
-    print form.cleaned_data['readingplan_per'] == None
-    print  form.cleaned_data['readingplan_type'] == ''
-    print '-'*7
-    print empty
 
     changes = False
     if old != None:
@@ -108,16 +89,11 @@ def add_LearningPlanLog(request, form,  student, mode, old= None):
                old.readingplan_per != form.cleaned_data['readingplan_per'] or \
                old.readingplan_type != form.cleaned_data['readingplan_type'])
 
-        print old.lastname
-        print 'changes {}'.format(changes)
     if not empty:
-        print 'not empty'
-        print mode
         if mode == 'new' or changes:
-           print 'ready to save'
            student.currentplan_id +=1
            student.save()
-           g = StudentLearningPlanLog(student=old,
+           g = StudentLearningPlanLog(student=student,
                                         created_by = request.user,
                                         plan_id = student.currentplan_id,
                                         mathplan_points = form.cleaned_data['mathplan_points'],
@@ -128,10 +104,6 @@ def add_LearningPlanLog(request, form,  student, mode, old= None):
                                         readingplan_type = form.cleaned_data['readingplan_type'])
 
            g.save()
-           print g.created_by
-           print g .plan_id
-           print g.mathplan_points
-           print form.cleaned_data['mathplan_points']
 
 
 def student_delete(request, pk):
@@ -150,35 +122,27 @@ def student_search(request):
             Q(lastname__istartswith=request.GET['last'])).order_by('lastname', 'firstname')
         for student in s1:
             student.result_type = "Startswith"
-        for s in s1:
-            print s
 
         s2= Student.objects.filter(
             ~Q(lastname__istartswith=request.GET['last'])&
             Q(lastname__icontains=request.GET['last'])).order_by('lastname', 'firstname')
         for student in s2:
             student.result_type = "Contains"
-        for s in s2:
-            print s
 
         results = chain(s1, s2)
-        print results
 
         if len(s1) == 1:
-            print '1'
             student = Student.objects.get(lastname__istartswith=request.GET['last'])
             form = StudentForm(instance=student)
             template_name = 'students/student_form.html'
             context = {'form': form, 'student': student}
         else:
-            print 'more than 1'
             template_name = 'students/search_results_list.html'
             context = {'results': results,  'search': request.GET['last']}
         return render(request, template_name, context)
 
     else:
-        return HttpResponseRedirect('/')
-
+        return HttpResponseRedirect(reverse('student_list'))
 
 def student_logcreate(request, pk):
     student = get_object_or_404(Student, pk=pk)
@@ -205,29 +169,6 @@ def student_loglist(request, pk):
      context = {'log_list': log_list, 'student': student}
      return render(request, template_name, context)
 
-def student_learningplan(request, pk):
-    student = get_object_or_404(Student, pk=pk)
-    learningplan = Student.objects.get(pk=pk)
-    form = StudentLearningPlanForm(instance=student)
-    if request.method == 'POST':
-        form = StudentLearningPlanForm(request.POST, instance=student)
-        if form.is_valid():
-            form.save()
-
-            f = StudentLearningPlanLog(student=student,
-                                       created_by = request.user,
-                                       mathplan_points = cleaned_data['mathplan_points'],
-                                       mathplan_per = cleaned_data['mathplan_per'],
-                                       mathplan_type = cleaned_data['mathplan_type'],
-                                       readingplan_points = cleaned_data['readingplan_points'],
-                                       readingplan_per = cleaned_data['readingplan_per'],
-                                       readingplan_type = cleaned_data['readingplan_type'])
-            f.save()
-            return HttpResponseRedirect(reverse('student_edit'))
-
-    template_name = 'students/learningplan.html'
-    context = {'learningplan': learningplan, 'form': form}
-    return render(request, template_name, context)
 
 def student_gainpoints(request, pk):
     student = get_object_or_404(Student, pk=pk)
@@ -252,15 +193,8 @@ def student_gainpoints(request, pk):
 
         # Add points to Student
             add_points(student, f.math_amt)
-
-        #Create log of Email
-            email = 'deekras2@gmail.com' #will pull this from parent model
-            caregiver = 'dk' #will pull this from parent model
-            student_name = '{} {}'.format(student.firstname, student.lastname)
-            what_learned = '{} {} from {} {}'.\
-                    format(f.math_amt, get_display(MATHPLAN_CHOICES, f.math_type), f.math_source, f.math_source_details)
-            email_id = create_learned_email(request, student, email, caregiver, student_name, what_learned)
-            print email_id
+        # create the email data
+            email_id = create_learned_email(request, student, f)
 
         #Email - Send, Don't Send, Preview
             if request.POST['submit'] == 'send':
@@ -290,26 +224,6 @@ def student_gainpoints_list(request, pk):
     student = get_object_or_404(Student, pk=pk)
     learningplan_list = StudentLearningPlanLog.objects.filter(student=student).order_by('-created_date')
     points_list = StudentGainPoints.objects.filter(student=student).order_by('-created_date')
-
-
-    print student.lastname, student.firstname
-
-    for i, plan in enumerate(learningplan_list):
-        if i !=0:
-            print '{}: {} points per {} {}'.\
-                format(plan.created_date, plan.mathplan_points, plan.mathplan_per, plan.mathplan_type)
-            firstdate= learningplan_list[i-1].created_date
-        else:
-            print 'Current Learning Plan: {} points per {} {}'.\
-                format(plan.mathplan_points, plan.mathplan_per, plan.mathplan_type)
-            firstdate= timezone.now()
-        seconddate= learningplan_list[i].created_date
-
-        for points in points_list:
-            if seconddate < points.created_date <firstdate:
-                print "--", points.created_date, points.math_amt, points.math_type, points.math_source
-
-    # object_list = sorted(learningplan_list + points_list, key=attrgetter('created_date'), reverse=True)
 
     object_list = StudentGainPoints.objects.filter(student_id=pk).order_by('-created_date')
     total = points_list.count

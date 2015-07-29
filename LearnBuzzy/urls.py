@@ -18,7 +18,6 @@ urlpatterns = [
     url(r'^delete/(?P<pk>\d+)$', 'students.views.student_delete', name='student_delete'),
     url(r'^log_create/(?P<pk>\d+)$', 'students.views.student_logcreate', name='student_log_add'),
     url(r'^log_list/(?P<pk>\d+)$', 'students.views.student_loglist', name='student_log_list'),
-    url(r'^learningplan$', 'students.views.student_learningplan', name='student_learningplan'),
     url(r'^points/gain/(?P<pk>\d+)$', 'students.views.student_gainpoints', name='student_gainpoints'),
     url(r'^points/spend/(?P<pk>\d+)$', 'students.views.student_spendpoints', name='student_spendpoints'),
     url(r'^points/list/(?P<pk>\d+)$', 'students.views.student_gainpoints_list', name='student_gainpoints_list'),

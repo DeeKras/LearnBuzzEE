@@ -7,21 +7,31 @@ from datetime import datetime
 
 from .forms import EditEmailForm
 from .models import Email
-from .utils import strip_html
+from .utils import strip_html, get_display, MATHPLAN_CHOICES
 
 key = 'key-5b043e50a4c56d9ff6b8c73b5d23c3e4'
 sandbox = 'sandboxa8420b597da7412d906e170e6e810830.mailgun.org'
 
 request_url = 'https://api.mailgun.net/v2/{0}/messages'.format(sandbox)
 
-def create_learned_email(request, student, email, caregiver, student_name, what_learned):
+
+def create_learned_email(request, student, f):
+    caregiver = 'dk' #will pull this from parent model
+    signature = "your child'student teacher" #will pull this from the teacher
+
     body = 'Hello {}:<br>'.format(caregiver)
-    body = body + \
-            "This is to inform you that <b>{} has learned {}</b>. <br>Please encourage him to keep it up!".\
-                format(student_name, what_learned)
-    email_from = 'LEARNBUZZY Mrs. K.<dee@deekras.com>'
-    email_to = email
-    email_subject = 'Good news about {}'.format(student_name)
+    body += "This is to inform you that <b>{} {} has learned {} {} from {} {}</b>. <br>Please encourage him to keep it up! <br>". \
+                format(student.firstname,
+                       student.lastname,
+                       f.math_amt,
+                       get_display(MATHPLAN_CHOICES, f.math_type),
+                       f.math_source,
+                       f.math_source_details)
+    body += signature
+
+    email_from = 'LEARNBUZZY Mrs. K.<dee@deekras.com>' # will pull this from the teacher
+    email_to = 'deekras2@gmail.com' #will pull this from parent model
+    email_subject = 'Good news about {} {}'.format(student.firstname, student.lastname)
     email_html = "<html> {} </html>".format(body)
 
     return create_email_log(request, student, email_from, email_to, email_subject, email_html)
@@ -46,7 +56,7 @@ def email_no_send(request, email_id):
     student_name = '{} {}'.format(email.student.firstname, email.student.lastname)
     easygui.msgbox("Email about {} was NOT sent".format(student_name), "Email")
 
-    return HttpResponseRedirect(reverse('student_list'))
+    return HttpResponseRedirect(reverse('student_edit', args=(email.student.id,)))
 
 def email_send(request, email_id):
     email = Email.objects.get(id=email_id)
@@ -70,12 +80,15 @@ def email_send(request, email_id):
     print 'Status: {0}'.format(request.status_code)
     print 'Body:   {0}'.format(request.text)
 
-    return HttpResponseRedirect(reverse('student_list'))
+    return HttpResponseRedirect(reverse('student_edit', args=(email.student.id,)))
 
 def email_preview(request, email_id):
     email = Email.objects.get(id=email_id)
+
     if request.POST['submit'] == 'no_send':
+        email.save()
         return email_no_send(request, email_id)
+
     elif request.POST['submit'] == 'send':
         if request.POST['body_as_html']:
             email.email_body = request.POST['body_as_html']
@@ -87,7 +100,7 @@ def email_preview(request, email_id):
 
         return email_send(request,email_id)
 
-    else:
+    else: #preview
         body_no_html = strip_html(email.email_body)
 
         template_name = 'students/emails/email_preview.html'

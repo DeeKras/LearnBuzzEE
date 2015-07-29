@@ -82,6 +82,9 @@ class Email(models.Model):
     created_by = models.CharField(max_length=30)
     sent_date = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        verbose_name_plural = 'emails'
+
     def __unicode__(self):
         return 'email: status {}. created on {}'.format(self.status, self.created_date)
 
@@ -94,7 +97,6 @@ class Parent(models.Model):
 
     def __unicode__(self):
         return u'{} {}'.format(self.user.first_name, self.user.last_name)
-
 
 class StudentLog(models.Model):
     student = models.ForeignKey(Student)
@@ -123,6 +125,9 @@ class StudentLearningPlanLog(models.Model):
     readingplan_per = models.PositiveIntegerField(null=True, blank=True)
     readingplan_type = models.CharField(max_length=2, choices= READINGPLAN_CHOICES)
 
+    class Meta:
+        verbose_name_plural = 'StudentLearningPlanLogs'
+
     def __unicode__(self):
         return '{}, {} learning plan on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
 
@@ -146,6 +151,9 @@ class StudentGainPoints(models.Model):
     reading_type = models.CharField(max_length=2,
                                      choices= READINGPLAN_CHOICES,
                                     blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Student.GainPoints'
 
     def __unicode__(self):
         return '{}, {} gained points on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
