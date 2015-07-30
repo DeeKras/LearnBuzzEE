@@ -12,8 +12,8 @@
 
     <table>
         <col width="300">
-        <col width="150">
-        <col width="150">
+        <col width="170">
+        <col width="170">
         <col width="600">
         <tr>
             <td>
@@ -27,12 +27,12 @@
             </td>
 
             <td>
-                <form class="search">
-                    <form action= "{% url "student_search" %}"  method=GET>
+                    <form action= "{% url "student_search" %}"  method=GET class="search">
                         <input type="text" name="last" placeholder="search lastname">
-                        <button>
+                        <button type="submit" name="submit">
                             <img src="{% static "images/search.svg" %}" alt="search" style="width:12px;height:12px;"/>
                         </button>
+
                 </form>
                 </div>
             </td>

@@ -10,7 +10,7 @@
                 <h4><font color="black">mode:</font>edit</h4>
             {% endifequal %}
 
-
+                <div class="edit-form">
                 <table>
                     <col width="200">
                     <col width="200">
@@ -20,8 +20,16 @@
 
                     <tr>
 
-                        <td><h4>Name</h4>First name  {{form.firstname}} </td>
-                        <td>Last name   {{form.lastname}} </td>
+                        <td valign="top">
+                            <h4>Name</h4>First name  {{form.firstname}}
+                            {% if mode = 'edit' %}
+                                <h4>Total Points: <font color="black">{{student.total_points}}</font></h4>
+                            {% endif %}
+                        </td>
+                        <td valign="top">
+                            <h4><br></h4>
+                            Last name   {{form.lastname}}
+                        </td>
                         <td align="center" valign="top">
                            <h4>Group</h4>{{form.group}}
                         </td>
@@ -32,33 +40,36 @@
                             <h4>Avatar</h4> {{form.avatar}}
                         </td>
                     </tr>
-                    <tr>
-                        {% if mode = 'edit' %}Total Points {{student.total_points}}{% endif %}
-                    </tr>
+
                 </table>
+                </div>
 
 
         <h3>Individual Learning Plan</h3>
+        <div class="edit-form">
         <table>
             <col width="600">
             <col width="400">
             <tr>
                 <td>
                      <h4>Math</h4>
-                        {% if mode = 'edit' %}<strong>Current points:</strong>{{student.math_points}}{% endif %}<br><br>
-                        <strong>Plan:</strong><br>
-                        {{form.mathplan_points}} points per {{form.mathplan_per}} of {{form.mathplan_type}}
+                        {% if mode = 'edit' %}<strong>Current points: </strong>{{student.math_points}}{% endif %}<br><br>
+                        <strong>Plan: </strong><br>
+                        {{form.mathplan_points}} points per {{form.mathplan_per}} {{form.mathplan_type}}
                 </td>
                 <td>
                     <h4>Reading</h4>
-                        {% if mode = 'edit' %}<strong>Current points</strong>:{{student.reading_points}}{%endif %}<br><br>
-                        <strong>Plan:</strong><br>
-                        {{form.readingplan_points}} points per {{form.readingplan_per}} of {{form.readingplan_type}}
+                        {% if mode = 'edit' %}<strong>Current points</strong>: {{student.reading_points}}{%endif %}<br><br>
+                        <strong>Plan: </strong><br>
+                        {{form.readingplan_points}} points per {{form.readingplan_per}} {{form.readingplan_type}}
                 </td>
             </tr>
         </table>
+        </div>
 <hr>
                 <button type="submit"  value="Submit">Submit Student Information</button>
+
+    {{form.errors}}
 </form>
 
 

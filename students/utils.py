@@ -1,21 +1,16 @@
-GROUPS_LIST =    (
-        ('A', 'Group A'),
-        ('B', 'Group B'),
-        ('C', 'Group C'),
-        ('D', 'Group D')
-        )
-
 GENDER_CHOICES = (
         ('M','Male'),
         ('F','Female'),
         )
 
 MATHPLAN_CHOICES = (
+        ('', 'choose unit type'),
         ('li', 'lines'),
         ('ex','examples'),
         )
 
 READINGPLAN_CHOICES = (
+        ('', 'choose unit type'),
         ('li', 'lines'),
         ('pg','pages'),
         ('ch', 'chapters'),

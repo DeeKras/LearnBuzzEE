@@ -1,57 +1,88 @@
 {% extends "students/base.html" %}
 {% block content %}
-{% block student_header %} {% endblock student_header %}
-<b>Student:</b> {{student.lastname}}, {{student.firstname}}  <b>Group:</b> {{student.get_group_display}}
-<hr>
+<body>
+    <b>Student:</b> {{student.lastname}}, {{student.firstname}}
+    <hr>
 <form method="post">
     {% csrf_token %}
 
 
-<h3>Adding Math Points</h3>
+<h3>Adding Points</h3>
 
-<strong>Current points:</strong> {{student.math_points}}<br>
+    <div class="edit-form">
+        <table>
+            <col width="600">
+            <col width="600">
+            <tr>
+                <td>
+                    <h4>Math</h4>
+                </td>
+                <td>
+                    <h4>Reading</h4>
+                </td>
+            </tr>
+            <tr>
+                <td valign="top">
+                    <strong>Current points:</strong> {{student.math_points}}<br><br>
+                    <strong>Current Math Plan:</strong>
+                    {% if student.mathplan_points %}
+                        {{student.mathplan_points}} points per {{student.mathplan_per}} {{student.get_mathplan_type_display}}
+                    {% else %}
+                        <font color="red">no math plan on file - yet!</font>
+                    {% endif %}
+                    <hr>
 
-<strong>Current Math Plan:</strong>
-{{student.mathplan_points}} points per {{student.mathplan_per}} {{student.get_mathplan_type_display}}
-    <br>
-<br>
-    Recording that this student did math work
-    <table>
-        <tr>
-            <td> from:</td>
-            <td> details:</td>
-        </tr>
-        <tr>
-            <td>{{form.math_source}}</td>
-            <td>{{form.math_source_details}}</td>
-        </tr>
-    </table>
+                    Recording that this student did math work:<br>
+                    {% if student.mathplan_points %}
+                        {{form.math_amt}} {{form.math_type}}<br>
+                    <table>
+                        <tr>
+                            <td> from: </td>
+                            <td> {{form.math_source}} </td>
+                        </tr>
+                        <tr>
+                            <td>details:</td>
+                            <td>{{form.math_source_details}}</td>
+                        </tr>
+                    </table>
+                    {% else %}
+                        <font color="red">You cannot enter Learning yet, as there is no Learning Plan on file</font>
+                    {% endif %}
+                <td>
+                    <strong>Current points:</strong> {{student.reading_points}}<br><br>
+                    <strong>Current Reading Plan:</strong>
+                    {% if student.readingplan_points %}
+                        {{student.readingplan_points}} points per {{student.readingplan_per}} {{student.get_readingplan_type_display}}
+                    {% else %}
+                        <font color="red">no reading plan on file - yet!</font>
+                    {% endif %}
 
-    Did {{form.math_amt}} of [choose type] {{form.math_type}}<br>
+                    <hr>
+
+                    Recording that this student read:<br>
+                    {% if student.readingplan_points %}
+                        {{form.reading_amt}}  {{form.reading_type}}<br>
+                        <table>
+                        <tr>
+                            <td> from: </td>
+                            <td> {{form.reading_source}} </td>
+                        </tr>
+                        <tr>
+                            <td>details:</td>
+                            <td>{{form.reading_source_details}}</td>
+                        </tr>
+                    </table>
+                    {% else %}
+                        <font color="red">You cannot enter Learning yet, as there is no Learning Plan on file</font>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
 
     <hr>
-<h3>Adding Reading Points</h3>
-
-<strong>Current  points:</strong> {{student.reading_points}}<br>
-
-<strong>Current Reading Plan:</strong>
-{{student.readingplan_points}} points per {{student.readingplan_per}} {{student.get_readingplan_type_display}}
-    <br>
-    <br>
-    Recording that this student did reading work
-    <table>
-        <tr>
-            <td> from:</td>
-            <td> details:</td>
-        </tr>
-        <tr>
-            <td>{{form.reading_source}}</td>
-            <td>{{form.reading_source_details}}</td>
-        </tr>
-    </table>
-
-    Did {{form.reading_amt}} of [choose type] {{form.reading_type}}
-<hr>
 
     <button type="submit" name="submit" value="send">Save & Send email</button>
     <button type="submit" name="submit" value="no_send">Save & Don't Send email </button>
@@ -61,4 +92,5 @@
     {{form.errors}}
 
 </form>
+</body>
 {% endblock %}

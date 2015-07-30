@@ -48,6 +48,7 @@ def student_new_update(request, pk=None, student=None):
     if pk: #if is an edit
         student = get_object_or_404(Student, pk=pk)
         form = StudentForm(instance=student)
+
         mode='edit'
     else:
         form = StudentForm()
@@ -131,7 +132,7 @@ def student_search(request):
 
         results = chain(s1, s2)
 
-        if len(s1) == 1:
+        if (len(s1) + len(s2))  == 1:
             student = Student.objects.get(lastname__istartswith=request.GET['last'])
             form = StudentForm(instance=student)
             template_name = 'students/student_form.html'

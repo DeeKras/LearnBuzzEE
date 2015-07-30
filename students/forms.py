@@ -9,7 +9,7 @@ class StudentForm(forms.ModelForm):
         model = Student
 
         group = forms.ModelChoiceField(queryset=Group.objects.all(),
-                                       widget=forms.Select(attrs={'class':'selector'}))
+                                       widget=forms.Select(attrs={'class': "input-dropdown"}))
         fields = ['firstname', 'lastname', 'gender',
                   'avatar', 'group',
                   'mathplan_points', 'mathplan_per', 'mathplan_type',
@@ -20,12 +20,14 @@ class StudentForm(forms.ModelForm):
             'lastname': forms.TextInput(
                 attrs={'placeholder':'Last Name', 'class':'form-control'}),
             'gender': forms.RadioSelect(choices=GENDER_CHOICES),
-            'mathplan_points':forms.Textarea(attrs={'cols':6, 'rows':1}),
-            'mathplan_per':forms.Textarea(attrs={'cols': 6, 'rows': 1}),
-            'mathplan_type': forms.Select(choices= MATHPLAN_CHOICES),
-            'readingplan_points':forms.Textarea(attrs={'cols':6, 'rows':1}),
-            'readingplan_per':forms.Textarea(attrs={'cols': 6, 'rows': 1}),
-            'readingplan_type': forms.Select(choices= READINGPLAN_CHOICES)
+            'mathplan_points':forms.TextInput(attrs={'class': "input-numbers", 'placeholder': 'number'}),
+            'mathplan_per':forms.TextInput(attrs={'class': "input-numbers", 'placeholder': 'number'}),
+            'mathplan_type': forms.Select(choices= MATHPLAN_CHOICES,
+                                          attrs={'class': "input-dropdown"}),
+            'readingplan_points':forms.TextInput(attrs={'class': "input-numbers", 'placeholder': 'number'}),
+            'readingplan_per':forms.TextInput(attrs={'class': "input-numbers", 'placeholder': 'number'}),
+            'readingplan_type': forms.Select(choices= READINGPLAN_CHOICES,
+                                             attrs={'class': "input-dropdown"})
         }
 
     def clean(self):
@@ -65,12 +67,16 @@ class StudentGainPointsForm(forms.ModelForm):
         fields = ['math_source','math_source_details','math_amt','math_type',
                   'reading_source','reading_source_details','reading_amt','reading_type']
         widgets = {
-                'math_source': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
-                'math_source_details': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
-                'math_type': forms.Select(choices= MATHPLAN_CHOICES),
-                'reading_source': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
-                'reading_source_details': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
-                'reading_type': forms.Select(choices=READINGPLAN_CHOICES)
+                'math_amt': forms.TextInput(attrs={'class': "input-numbers", 'placeholder': 'number'}),
+                'math_source': forms.TextInput(attrs={'class': "input-text"}),
+                'math_source_details': forms.TextInput(attrs={'class': "input-text"}),
+                'math_type': forms.Select(choices= MATHPLAN_CHOICES,
+                                          attrs={'class': "input-dropdown"}),
+                'reading_amt': forms.TextInput(attrs={'class': "input-numbers", 'placeholder': 'number'}),
+                'reading_source': forms.TextInput(attrs={'class': "input-text"}),
+                'reading_source_details': forms.TextInput   (attrs={'class': "input-text"}),
+                'reading_type': forms.Select(choices=READINGPLAN_CHOICES,
+                                             attrs={'class': "input-dropdown"})
         }
 
     def __init__(self,*args, **kwargs):
