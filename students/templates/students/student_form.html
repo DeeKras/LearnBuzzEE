@@ -1,68 +1,74 @@
 {% extends "students/base.html" %}
 {% block content %}
-<form method="post">
+<form method="post" xmlns="http://www.w3.org/1999/html">
     {% csrf_token %}
 
-    <table>
-        <col width="300">
-        <col width="170">
-        <col width="170">
-        <col width="170">
-        <col width="600">
-        <th align="left">
-            <h3>Student Information</h3>
-        </th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th align="left">
-            <h3>Individual Learning Plan</h3>
-        </th>
-        <tr>
-            <td valign="top">
-                <strong>Name:</strong><br>
-                First name:  {{form.firstname}}<br><br>
-                Last name:   {{form.lastname}}
-                Total Points: {{student.total_points}}
-            </td>
-            <td valign="top">
-                <strong>Group:</strong><br>{{form.group}}
-            </td>
-            <td valign="top">
-                <strong>Gender:</strong><br>{{form.gender}}
-            </td>
-            <td valign="top">
-                <strong>Avatar:</strong> <br><br>{{form.avatar}}
-            </td>
-            <td>
-                {% include 'students/learningplan.html' %}
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <input type="submit" name="submit" value="Submit Student Information" />
-            </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    </table>
+        <h3>Student Information</h3>
+            {% ifequal mode "new" %}
+                <h4><font color="black">mode:</font>new</h4>
+            {% else %}
+                <h4><font color="black">mode:</font>edit</h4>
+            {% endifequal %}
 
+
+                <table>
+                    <col width="200">
+                    <col width="200">
+                    <col width="200" >
+                    <col width="200">
+                    <col width="200">
+
+                    <tr>
+
+                        <td><h4>Name</h4>First name  {{form.firstname}} </td>
+                        <td>Last name   {{form.lastname}} </td>
+                        <td align="center" valign="top">
+                           <h4>Group</h4>{{form.group}}
+                        </td>
+                        <td valign="top">
+                            <h4>Gender</h4>{{form.gender}}
+                        </td>
+                        <td valign="top">
+                            <h4>Avatar</h4> {{form.avatar}}
+                        </td>
+                    </tr>
+                    <tr>
+                        {% if mode = 'edit' %}Total Points {{student.total_points}}{% endif %}
+                    </tr>
+                </table>
+
+
+        <h3>Individual Learning Plan</h3>
+        <table>
+            <col width="600">
+            <col width="400">
+            <tr>
+                <td>
+                     <h4>Math</h4>
+                        {% if mode = 'edit' %}<strong>Current points:</strong>{{student.math_points}}{% endif %}<br><br>
+                        <strong>Plan:</strong><br>
+                        {{form.mathplan_points}} points per {{form.mathplan_per}} of {{form.mathplan_type}}
+                </td>
+                <td>
+                    <h4>Reading</h4>
+                        {% if mode = 'edit' %}<strong>Current points</strong>:{{student.reading_points}}{%endif %}<br><br>
+                        <strong>Plan:</strong><br>
+                        {{form.readingplan_points}} points per {{form.readingplan_per}} of {{form.readingplan_type}}
+                </td>
+            </tr>
+        </table>
+<hr>
+                <button type="submit"  value="Submit">Submit Student Information</button>
 </form>
 
-<hr>
-{% ifequal mode "new" %}
-    <b>mode:</b> new
-{% else %}
-    <b>mode:</b> edit
+
+    {% if mode = 'edit' %}
         <form method="get"></form>
         <a href="{% url "student_log_add" student.pk %}"><button>add to log</button></a>
         <a href="{% url "student_log_list" student.pk %}"><button>show log list</button></a>
         <a href="{% url "student_gainpoints" student.pk %}"><button>gain points</button></a>
         <a href="{% url "student_gainpoints_list" student.pk %}"><button>show points</button></a>
         <a href="{% url "student_delete" student.pk %}"><button>delete</button></a>
-{% endifequal %}
-<hr>
+    {% endif %}
 
 {% endblock %}

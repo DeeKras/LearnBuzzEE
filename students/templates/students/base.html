@@ -1,22 +1,20 @@
 {% load staticfiles %}
 <html>
   <head>
-    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}"
+    <link href="{% static 'bootstrap-clean/css/bootstrap.min.css' %}"
           rel="stylesheet" media="screen">
+      <link href="{% static 'dk/dk.css' %}"
+          rel="stylesheet" media="screen">
+
   </head>
   <body>
-    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'bootstrap-clean/js/bootstrap.min.js' %}"></script>
 
     <table>
         <col width="300">
         <col width="150">
         <col width="150">
-        <col width="400">
-        <col width="100">
-        <col width="140">
-        <col width="100">
-        <col width="100">
-        <col width="140">
+        <col width="600">
         <tr>
             <td>
                 <font face="arial" color=20B2AA size="6">LearnBuzzEE</font>
@@ -27,12 +25,16 @@
             <td>
                 <a href="{% url "student_new" %}"><button>Add New Student</button></a>
             </td>
-            <td>
-               <form  action= {% url "student_search" %}  method=GET>
-                    <input type="text" name="last" placeholder="search lastname">
-                    <button>Search</button></a>
 
+            <td>
+                <form class="search">
+                    <form action= "{% url "student_search" %}"  method=GET>
+                        <input type="text" name="last" placeholder="search lastname">
+                        <button>
+                            <img src="{% static "images/search.svg" %}" alt="search" style="width:12px;height:12px;"/>
+                        </button>
                 </form>
+                </div>
             </td>
         </tr>
     </table>
