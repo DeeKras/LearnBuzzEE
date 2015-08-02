@@ -1,3 +1,7 @@
+from django.core.files import File
+from django.http import HttpResponseRedirect
+
+
 GENDER_CHOICES = (
         ('M','Male'),
         ('F','Female'),
@@ -30,7 +34,20 @@ def strip_html(html):
         return ready_for_web
 
 def gender_him_her(gender):
-    return 'him' if gender == "M" else 'her'
+        return 'him' if gender == "M" else 'her'
 
 def gender_he_she(gender):
-    return 'he' if gender == "M" else 'she'
+        return 'he' if gender == "M" else 'she'
+
+def upload_file(request):
+        if request.method == 'POST':
+            form = UploadFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                print 'do data check'
+                return HttpResponseRedirect(reverse('student_list'))
+            print 'not valid'
+
+        template_name = 'students/file_upload.html'
+        context = {'form': UploadFileForm()}
+        return render(request, template_name, context)
+

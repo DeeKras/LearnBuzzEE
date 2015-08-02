@@ -30,8 +30,8 @@ class Educator(models.Model):
 
 
 class Student(models.Model):
-    firstname = models.CharField(max_length=30)
-    lastname = models.CharField(max_length=30)
+    firstname = models.CharField(max_length=30, blank=False)
+    lastname = models.CharField(max_length=30, blank=False)
     gender = models.CharField(max_length=1,
                              choices=GENDER_CHOICES,
                              blank=False)

@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^email/preview/(?P<email_id>\d+)$', 'students.emails.email_preview', name="email_preview"),
     # url(r'^', include('students.urls')),
 
-    ]
-
+    #upload files
+    url(r'^upload$', 'students.views.upload_file', name="upload_file"),
+]
 urlpatterns += staticfiles_urlpatterns()

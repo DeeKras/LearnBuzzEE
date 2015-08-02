@@ -114,8 +114,12 @@ class StudentGainPointsForm(forms.ModelForm):
                     errorlist['reading_type']= msg + 'reading type'
         raise ValidationError(errorlist)
 
+class UploadFileForm(forms.Form):
+    file = forms.FileField(label="Choose excel to upload")
+
 class EditEmailForm(forms.Form):
     to = forms.EmailField()
     subject = forms.CharField(max_length=100, widget= forms.Textarea(attrs={'cols': 140, 'rows': 1}))
     body_as_html = forms.CharField(widget=forms.Textarea(attrs={'cols': 150, 'rows': 5}))
     body_no_html = forms.CharField(widget=forms.Textarea(attrs={'cols': 150, 'rows': 5}))
+

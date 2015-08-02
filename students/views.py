@@ -1,13 +1,17 @@
 from django.db.models import Q
+from django import forms
 from django.shortcuts import render, get_object_or_404
 from django.http import  HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.exceptions import ValidationError
+
 
 from django.views.generic import TemplateView, ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 import re
 from operator import attrgetter
@@ -15,15 +19,13 @@ from django.utils import timezone
 from itertools import chain
 import easygui
 from copy import deepcopy
+import csv
 
 
-from .forms import StudentForm, StudentLogForm, StudentGainPointsForm
-from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog
+from .forms import StudentForm, StudentLogForm, StudentGainPointsForm, UploadFileForm
+from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog, Group
 from .emails import create_learned_email, email_preview, email_send, email_no_send
 from .utils import get_display, MATHPLAN_CHOICES
-
-
-
 
 
 #----------------------------------------------
@@ -170,6 +172,34 @@ def student_loglist(request, pk):
      context = {'log_list': log_list, 'student': student}
      return render(request, template_name, context)
 
+def upload_file(request):
+        if request.method == 'POST':
+            uploaded = request.FILES['file']
+            #TODO - test to make sure it is a valid csv.
+            #TODO - allow for valid csv or xls
+
+            form = UploadFileForm(request.POST, request.FILES)
+
+            if form.is_valid():
+
+                csvfile = uploaded
+                portfolio = csv.DictReader(csvfile,)
+                for row in portfolio:
+                    print row['firstname'], row['lastname'], row['gender']
+                    student = Student()
+                    student.firstname = row['firstname']
+                    student.lastname = row['lastname']
+                    student.gender = row['gender']
+                    student.group = Group.objects.get(groupname = 'unknown')  # this will be pulled from the upload form
+                    student.added_how = 'upload'
+                    student.added_how_detail = request.FILES['file']
+                    student.save()
+                return HttpResponseRedirect(reverse('student_list'))
+            print 'not valid'
+
+        template_name = 'students/file_upload.html'
+        context = {'form': UploadFileForm()}
+        return render(request, template_name, context)
 
 def student_gainpoints(request, pk):
     student = get_object_or_404(Student, pk=pk)

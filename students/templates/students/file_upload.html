@@ -1,0 +1,10 @@
+{% extends "students/base.html" %}
+{% block content %}
+
+    <form method ="post" enctype="multipart/form-data" >{% csrf_token %}
+        Student File {{form.file}}
+        <button type="submit" name="submit" >Upload</button>
+    </form>
+
+    {{form.errors}}
+{% endblock content %}
