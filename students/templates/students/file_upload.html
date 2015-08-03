@@ -1,10 +1,40 @@
 {% extends "students/base.html" %}
 {% block content %}
 
-    <form method ="post" enctype="multipart/form-data" >{% csrf_token %}
-        Student File {{form.file}}
-        <button type="submit" name="submit" >Upload</button>
-    </form>
+    <br><br>
 
+<form method ="post" enctype="multipart/form-data" >{% csrf_token %}
+   <table>
+       <col width ="500">
+       <col width ="200">
+       <col width ="100">
+       <tr>
+           <td>
+               Select <b>Group</b> for all students that will be uploaded in this batch:
+           </td>
+           <td>
+               {{form.group}}
+           </td>
+       </tr>
+       <tr>
+           <td><hr></td>
+           <td><hr></td>
+           <td><hr></td>
+       </tr>
+       <tr>
+           <td>
+              Select file to <b>upload</b>:
+           </td>
+           <td>
+              {{form.file}}
+           </td>
+           <td>
+              <button type="submit" name="submit" >Upload</button>
+           </td>
+       </tr>
+   </table>
+
+    </form>
+<hr>
     {{form.errors}}
 {% endblock content %}

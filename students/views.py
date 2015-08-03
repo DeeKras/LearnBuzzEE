@@ -23,9 +23,9 @@ import csv
 
 
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm, UploadFileForm
-from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog, Group
+from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog, Group, UploadLog
 from .emails import create_learned_email, email_preview, email_send, email_no_send
-from .utils import get_display, MATHPLAN_CHOICES
+from .utils import get_display, MATHPLAN_CHOICES, GENDER_CHOICES
 
 
 #----------------------------------------------
@@ -62,7 +62,9 @@ def student_new_update(request, pk=None, student=None):
 
         if form.is_valid():
             if mode == 'new':
-                student = form.save()
+                student = form.save(commit=False)
+                student.added_how = 'entered by {}'.format(request.user)
+                student.save()
                 add_LearningPlanLog(request, form, student, mode)
             elif mode == 'edit':
                 old = get_object_or_404(Student, pk=pk)
@@ -111,8 +113,14 @@ def add_LearningPlanLog(request, form,  student, mode, old= None):
 
 def student_delete(request, pk):
     student = get_object_or_404(Student, pk=pk)
+    student_name = '{} {}'.format(student.firstname, student.lastname)
     if request.method == 'POST':
-        student.delete()
+        if request.POST['submit'] == 'delete':
+            student.delete()
+            easygui.msgbox("{} was deleted".format(student_name), "Delete")
+        else:
+            easygui.msgbox("{} was not deleted".format(student_name), "Delete")
+
         return HttpResponseRedirect(reverse('student_list'))
 
     template_name = 'students/student_confirm_delete.html'
@@ -183,23 +191,54 @@ def upload_file(request):
             if form.is_valid():
 
                 csvfile = uploaded
+                last_upload = UploadLog.objects.latest('upload_id')
+                new_upload = 'upload.'+str(int(last_upload.upload_id.split('.')[1])+1).zfill(4)
                 portfolio = csv.DictReader(csvfile,)
+                num_student_uploaded = 0
                 for row in portfolio:
                     print row['firstname'], row['lastname'], row['gender']
                     student = Student()
                     student.firstname = row['firstname']
                     student.lastname = row['lastname']
                     student.gender = row['gender']
-                    student.group = Group.objects.get(groupname = 'unknown')  # this will be pulled from the upload form
-                    student.added_how = 'upload'
-                    student.added_how_detail = request.FILES['file']
+                    student.group = form.cleaned_data['group']
+                    student.added_how = new_upload
                     student.save()
-                return HttpResponseRedirect(reverse('student_list'))
+                    num_student_uploaded +=1
+
+                add_to_log = UploadLog()
+                add_to_log.upload_id = new_upload
+                add_to_log.uploaded_by = request.user
+                add_to_log.file_name = uploaded
+                add_to_log.amt_uploaded = num_student_uploaded
+                add_to_log.group = form.cleaned_data['group']
+                add_to_log.save()
+                #TODO - should open to a 'student list' of just the newly uploaded. with space to add their learning plans.
+                return HttpResponseRedirect(reverse('uploaded_list', args=(new_upload,)))
+
             print 'not valid'
 
         template_name = 'students/file_upload.html'
         context = {'form': UploadFileForm()}
         return render(request, template_name, context)
+
+def list_after_upload(request, upload_id):
+    #TODO - save using serializer - http://www.django-rest-framework.org/api-guide/serializers/
+    student_list = Student.objects.filter(added_how=upload_id).order_by('lastname', 'firstname')
+    paginator = Paginator(student_list, 6, orphans=3)
+
+    page = request.GET.get('page')
+    try:
+        students = paginator.page(page)
+    except PageNotAnInteger:
+        students = paginator.page(1)
+    except EmptyPage:
+        students = paginator.page(num_pages)
+
+    context = {'students': students, 'upload_id': upload_id, 'form': StudentForm()}
+    template_name = 'students/uploaded_list.html'
+    return render(request, template_name, context)
+
 
 def student_gainpoints(request, pk):
     student = get_object_or_404(Student, pk=pk)

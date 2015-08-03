@@ -116,6 +116,9 @@ class StudentGainPointsForm(forms.ModelForm):
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Choose excel to upload")
+    group = forms.ModelChoiceField(queryset=Group.objects.all(),
+                                       widget=forms.Select(attrs={'class': "input-dropdown"}))
+
 
 class EditEmailForm(forms.Form):
     to = forms.EmailField()

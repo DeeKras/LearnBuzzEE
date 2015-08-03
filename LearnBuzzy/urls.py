@@ -31,5 +31,6 @@ urlpatterns = [
 
     #upload files
     url(r'^upload$', 'students.views.upload_file', name="upload_file"),
+    url(r'^upload/list/(?P<upload_id>[a-z]{6}\.\d{4})$', 'students.views.list_after_upload', name='uploaded_list'),
 ]
 urlpatterns += staticfiles_urlpatterns()

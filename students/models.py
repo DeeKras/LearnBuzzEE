@@ -157,3 +157,15 @@ class StudentGainPoints(models.Model):
 
     def __unicode__(self):
         return '{}, {} gained points on {}'.format(self.student.lastname, self.student.firstname, self.created_date)
+
+class UploadLog(models.Model):
+    upload_id = models.CharField(max_length=15)
+    uploaded_by = models.CharField(max_length=30)
+    uploaded_timestamp = models.DateTimeField(auto_now_add=True)
+    file_name = models.CharField(max_length=300)
+    amt_uploaded = models.IntegerField()
+    group = models.ForeignKey(Group)
+
+    def __unicode__(self):
+        return '{}: Group {} on {} by {}'.\
+            format(self.upload_id, self.group.groupname, self.uploaded_timestamp, self.uploaded_by)
