@@ -1,0 +1,91 @@
+﻿Permission
+Admin
+Teacher
+parent
+student
+Add student
+Y
+Y
+N
+N
+Change Student
+Y
+Y
+N
+N
+Delete Student
+Y
+Y
+N
+N
+Upload student
+Y
+Y
+N
+N
+Add teacher
+Y
+N
+N
+N
+Change teacher
+Y
+Y
+N
+N
+Delete teacher
+Y
+N
+N
+N
+Add Learning Plan
+Y
+Y
+N
+N
+Change Learning Plan
+Y
+Y
+N
+N
+Add Points
+Y
+Y
+Y
+N
+Spend Points
+Y
+Y
+N
+Y
+View Student List
+Y
+Y
+N
+N
+View Student Summary
+Y
+Y
+Y
+Y
+Upload Avatar
+Y
+Y
+Y
+Y
+Add Parent
+Y
+Y
+N
+N
+Change Parent
+Y
+Y
+Y
+N
+Delete Parent
+Y
+Y
+N
+N
+

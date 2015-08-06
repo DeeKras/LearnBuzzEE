@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ValidationError
+from django.forms.models import modelformset_factory
 
 
 from django.views.generic import TemplateView, ListView
@@ -25,7 +26,7 @@ import csv
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm, UploadFileForm
 from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog, Group, UploadLog
 from .emails import create_learned_email, email_preview, email_send, email_no_send
-from .utils import get_display, MATHPLAN_CHOICES, GENDER_CHOICES
+from .utils import get_display, MATHPLAN_CHOICES, READINGPLAN_CHOICES, GENDER_CHOICES
 
 
 #----------------------------------------------
@@ -226,6 +227,30 @@ def list_after_upload(request, upload_id):
     #TODO - save using serializer - http://www.django-rest-framework.org/api-guide/serializers/
     student_list = Student.objects.filter(added_how=upload_id).order_by('lastname', 'firstname')
     paginator = Paginator(student_list, 6, orphans=3)
+    UploadedListFormset = modelformset_factory(
+            Student,
+            fields=('id', 'lastname', 'firstname',
+                    'mathplan_points', 'mathplan_per', 'mathplan_type',
+                    'readingplan_points','readingplan_per','readingplan_type'),
+            widgets= {  'firstname': forms.TextInput(
+                            attrs={'placeholder':'First Name', 'class':'form-control'}),
+                        'lastname': forms.TextInput(
+                            attrs={'placeholder':'Last Name', 'class':'form-control'}),
+                        'mathplan_points':forms.TextInput(
+                            attrs={'class': "input-numbers", 'placeholder': 'number'}),
+                        'mathplan_per':forms.TextInput(
+                            attrs={'class': "input-numbers", 'placeholder': 'number'}),
+                        'mathplan_type': forms.Select(choices= MATHPLAN_CHOICES,
+                            attrs={'class': "input-dropdown"}),
+                        'readingplan_points':forms.TextInput(
+                            attrs={'class': "input-numbers", 'placeholder': 'number'}),
+                        'readingplan_per':forms.TextInput(
+                            attrs={'class': "input-numbers", 'placeholder': 'number'}),
+                        'readingplan_type': forms.Select(choices= READINGPLAN_CHOICES,
+                            attrs={'class': "input-dropdown"})},
+            extra=0)
+
+    uploaded_formset = UploadedListFormset(queryset= student_list)
 
     page = request.GET.get('page')
     try:
@@ -235,7 +260,15 @@ def list_after_upload(request, upload_id):
     except EmptyPage:
         students = paginator.page(num_pages)
 
-    context = {'students': students, 'upload_id': upload_id, 'form': StudentForm()}
+    if request.POST:
+        formset = UploadedListFormset(request.POST)
+        if formset.is_valid():
+            formset.save()
+        else:
+            print formset.errors
+
+
+    context = {'students': students, 'upload_id': upload_id, 'formset': uploaded_formset}
     template_name = 'students/uploaded_list.html'
     return render(request, template_name, context)
 

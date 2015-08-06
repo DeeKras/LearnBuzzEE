@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ValidationError
 
 from django.utils import timezone
@@ -7,7 +7,10 @@ from django.utils import timezone
 from .utils import GENDER_CHOICES, MATHPLAN_CHOICES, READINGPLAN_CHOICES
 
 
-class Group(models.Model):
+
+
+
+class StudentGroup(models.Model):
     groupname = models.CharField(max_length=30)
 
     class Meta:
@@ -20,10 +23,13 @@ class Educator(models.Model):
     called = models.CharField(max_length=100)
     email_from = models.CharField(max_length=100)
     email_signature = models.TextField()
-    group = models.ManyToManyField(Group)
+    group = models.ManyToManyField(StudentGroup)
 
     class Meta:
         verbose_name_plural = 'educators'
+        permissions = (
+            ("view_student", "Can view students"),
+            ("change_student", "Can change student information"),)
 
     def __unicode__(self):
         return u'{}'.format(self.called)
@@ -35,7 +41,7 @@ class Student(models.Model):
     gender = models.CharField(max_length=1,
                              choices=GENDER_CHOICES,
                              blank=False)
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(StudentGroup)
     avatar = models.ImageField(upload_to='thumbpath', blank=True)
 
     start_date = models.DateField(auto_now_add=True)
@@ -64,6 +70,8 @@ class Student(models.Model):
 
     class Meta:
         verbose_name_plural = 'students'
+        permissions = (
+            ("view_student_avatar", "Can change the avatar"),)
 
     def __unicode__(self):
         return u'{}: {}, {}'.format(self.pk, self.lastname, self.firstname)
@@ -164,7 +172,7 @@ class UploadLog(models.Model):
     uploaded_timestamp = models.DateTimeField(auto_now_add=True)
     file_name = models.CharField(max_length=300)
     amt_uploaded = models.IntegerField()
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(StudentGroup)
 
     def __unicode__(self):
         return '{}: Group {} on {} by {}'.\

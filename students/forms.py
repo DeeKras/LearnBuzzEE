@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Student,  StudentLog, StudentGainPoints, Group,\
+from .models import Student,  StudentLog, StudentGainPoints, StudentGroup,\
             GENDER_CHOICES,  READINGPLAN_CHOICES, MATHPLAN_CHOICES
 
 
@@ -8,13 +8,14 @@ class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
 
-        group = forms.ModelChoiceField(queryset=Group.objects.all(),
+        group = forms.ModelChoiceField(queryset=StudentGroup.objects.all(),
                                        widget=forms.Select(attrs={'class': "input-dropdown"}))
-        fields = ['firstname', 'lastname', 'gender',
+        fields = ['firstname', 'lastname', 'gender', 'id',
                   'avatar', 'group',
                   'mathplan_points', 'mathplan_per', 'mathplan_type',
                   'readingplan_points','readingplan_per','readingplan_type']
         widgets = {
+            'id':forms.IntegerField(),
             'firstname': forms.TextInput(
                 attrs={'placeholder':'First Name', 'class':'form-control'}),
             'lastname': forms.TextInput(
@@ -116,7 +117,7 @@ class StudentGainPointsForm(forms.ModelForm):
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Choose excel to upload")
-    group = forms.ModelChoiceField(queryset=Group.objects.all(),
+    group = forms.ModelChoiceField(queryset=StudentGroup.objects.all(),
                                        widget=forms.Select(attrs={'class': "input-dropdown"}))
 
 

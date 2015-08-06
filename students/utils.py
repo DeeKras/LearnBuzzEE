@@ -1,5 +1,6 @@
 from django.core.files import File
 from django.http import HttpResponseRedirect
+from django.contrib.auth.decorators import user_passes_test
 
 
 GENDER_CHOICES = (
@@ -39,15 +40,14 @@ def gender_him_her(gender):
 def gender_he_she(gender):
         return 'he' if gender == "M" else 'she'
 
-def upload_file(request):
-        if request.method == 'POST':
-            form = UploadFileForm(request.POST, request.FILES)
-            if form.is_valid():
-                print 'do data check'
-                return HttpResponseRedirect(reverse('student_list'))
-            print 'not valid'
 
-        template_name = 'students/file_upload.html'
-        context = {'form': UploadFileForm()}
-        return render(request, template_name, context)
+
+# def group_required(*group_names):
+#     """Requires user membership in at least one of the groups passed in."""
+#      def in_groups(u):
+#         if u.is_authenticated():
+#             if bool(u.groups.filter(name__in=group_names)) | u.is_superuser:
+#                 return True
+#             return False
+#     return user_passes_test(in_groups)
 
