@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 from .models import Student,  StudentLog, StudentGainPoints, StudentGroup,\
             GENDER_CHOICES,  READINGPLAN_CHOICES, MATHPLAN_CHOICES
 
@@ -127,3 +128,32 @@ class EditEmailForm(forms.Form):
     body_as_html = forms.CharField(widget=forms.Textarea(attrs={'cols': 150, 'rows': 5}))
     body_no_html = forms.CharField(widget=forms.Textarea(attrs={'cols': 150, 'rows': 5}))
 
+
+#--------------------
+
+class UserForm(forms.ModelForm):
+    username = forms.CharField(widget=forms.widgets.TextInput, label="User Name")
+    password = forms.CharField(widget=forms.widgets.PasswordInput, label="Password")
+    password2 = forms.CharField(widget=forms.widgets.PasswordInput, label="Password (again)")
+    first_name = forms.CharField(widget=forms.widgets.TextInput, label="First Name")
+    last_name = forms.CharField(widget=forms.widgets.TextInput, label="Last Name")
+
+    class Meta:
+        model = User
+        fields = ('username', 'password', 'password2', 'first_name', 'last_name')
+
+
+    # def clean(self):  #don't overrride clean,
+    #     cleaned_data = super(UserForm, self).clean()
+    #     if 'password' in self.cleaned_data and 'password2' in self.cleaned_data:
+    #         if self.cleaned_data['password'] != self.cleaned_data['password2']:
+    #             raise forms.ValidationError("Passwords don't match. Please enter both fields again.")
+    #     return self.cleaned_data
+
+    def save(self, commit=True):
+        user = super(UserForm, self).save(commit=False)
+        hashed_password = hashlib.md5(self.cleaned_data['password']).hexdigest()
+        user.password = hashed_password
+        if commit:
+            user.save()
+        return user

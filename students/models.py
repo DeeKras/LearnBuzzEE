@@ -14,6 +14,10 @@ class Educator(models.Model):
     student_group = models.CharField(max_length=10)
     email_signature = models.TextField()
 
+    start_date = models.DateField(auto_now_add=True)
+    added_how = models.CharField(max_length=100)
+    added_how_detail = models.CharField(max_length=255)
+
     class Meta:
         verbose_name_plural = 'educators'
 

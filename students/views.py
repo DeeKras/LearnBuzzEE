@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ValidationError
 from django.forms.models import modelformset_factory
+from django.contrib.auth.models import User, Group
 
 
 from django.views.generic import TemplateView, ListView
@@ -63,8 +64,20 @@ def student_new_update(request, pk=None, student=None):
 
         if form.is_valid():
             if mode == 'new':
+                # user = User.objects.create()
                 student = form.save(commit=False)
                 student.added_how = 'entered by {}'.format(request.user)
+
+                user = User.objects._create_user(
+                    username='{}{}'.format(student.firstname, student.lastname).replace(' ',''),
+                    email=None,
+                    password=student.firstname,
+                    is_staff=False, is_superuser=False)
+                group=Group.objects.get(name='Student')
+                user.groups.add(group)
+                user.save()
+
+                student.user = user
                 student.save()
                 add_LearningPlanLog(request, form, student, mode)
             elif mode == 'edit':
@@ -77,6 +90,48 @@ def student_new_update(request, pk=None, student=None):
     context = {'form': form, 'student': student, 'mode':mode}
     return render(request, template_name, context)
 
+
+def educator_new_update(request, pk=None, educator=None):
+    if pk: #if is an edit
+        educator = get_object_or_404(Educator, pk=pk)
+        form = StudentForm(instance=student)
+
+        mode='edit'
+    else:
+        form = StudentForm()
+        mode = 'new'
+
+    #if it is an edit or new with data
+    if request.method == 'POST':
+        form = StudentForm(request.POST, instance=student)
+
+        if form.is_valid():
+            if mode == 'new':
+                # user = User.objects.create()
+                student = form.save(commit=False)
+                student.added_how = 'entered by {}'.format(request.user)
+
+                user = User.objects._create_user(
+                    username='{}{}'.format(student.firstname, student.lastname).replace(' ',''),
+                    email=None,
+                    password=student.firstname,
+                    is_staff=False, is_superuser=False)
+                group=Group.objects.get(name='Student')
+                user.groups.add(group)
+                user.save()
+
+                student.user = user
+                student.save()
+                add_LearningPlanLog(request, form, student, mode)
+            elif mode == 'edit':
+                old = get_object_or_404(Student, pk=pk)
+                add_LearningPlanLog(request, form, student, mode, old )
+                form.save()
+            return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
+
+    template_name = 'students/student_form.html'
+    context = {'form': form, 'student': student, 'mode':mode}
+    return render(request, template_name, context)
 
 def add_LearningPlanLog(request, form,  student, mode, old= None):
     empty = (form.cleaned_data['mathplan_points'] == None and \
@@ -182,45 +237,64 @@ def student_loglist(request, pk):
      return render(request, template_name, context)
 
 def upload_file(request):
+        error_text=''
         if request.method == 'POST':
-            uploaded = request.FILES['file']
-            #TODO - test to make sure it is a valid csv.
-            #TODO - allow for valid csv or xls
+            csvfile = request.FILES['file']
 
-            form = UploadFileForm(request.POST, request.FILES)
+            if UploadLog.objects.filter(file_name=csvfile).exists():
+                already_uploaded = UploadLog.objects.get(file_name=csvfile)
+                students_in_uploaded_batch  = Student.objects.filter(added_how=already_uploaded.upload_id).order_by('lastname', 'firstname')
+                error_text = '{} was uploaded on {: %b %d, %Y %I:%M%p} as Group {}'.format(csvfile, already_uploaded.uploaded_timestamp, already_uploaded.group)+"\n"+"with these students:"+"\n"
+                for student in students_in_uploaded_batch:
+                    error_text += '{}, {}'.format(student.lastname, student.firstname)+'\n'
+                error_messages = {'already uploaded': error_text}
 
-            if form.is_valid():
+            else:
+                #TODO - test to make sure it is a valid csv.
+                #TODO - allow for valid csv or xls
 
-                csvfile = uploaded
-                last_upload = UploadLog.objects.latest('upload_id')
-                new_upload = 'upload.'+str(int(last_upload.upload_id.split('.')[1])+1).zfill(4)
-                portfolio = csv.DictReader(csvfile,)
-                num_student_uploaded = 0
-                for row in portfolio:
-                    print row['firstname'], row['lastname'], row['gender']
-                    student = Student()
-                    student.firstname = row['firstname']
-                    student.lastname = row['lastname']
-                    student.gender = row['gender']
-                    student.group = form.cleaned_data['group']
-                    student.added_how = new_upload
-                    student.save()
-                    num_student_uploaded +=1
+                form = UploadFileForm(request.POST, request.FILES)
 
-                add_to_log = UploadLog()
-                add_to_log.upload_id = new_upload
-                add_to_log.uploaded_by = request.user
-                add_to_log.file_name = uploaded
-                add_to_log.amt_uploaded = num_student_uploaded
-                add_to_log.group = form.cleaned_data['group']
-                add_to_log.save()
-                #TODO - should open to a 'student list' of just the newly uploaded. with space to add their learning plans.
-                return HttpResponseRedirect(reverse('uploaded_list', args=(new_upload,)))
+                if form.is_valid():
+                    last_upload = UploadLog.objects.latest('upload_id')
+                    new_upload = 'upload.'+str(int(last_upload.upload_id.split('.')[1])+1).zfill(4)
 
-            print 'not valid'
+                    rows = csv.DictReader(csvfile,)
+                    num_student_uploaded = 0
+                    for row in rows:
+                        user = User.objects._create_user(
+                        username='{}{}'.format(row['firstname'], row['lastname']).replace(' ',''),
+                        email=None,
+                        password=row['firstname'],
+                        is_staff=False, is_superuser=False)
+                        group=Group.objects.get(name='Student')
+                        user.groups.add(group)
+                        user.save()
+
+                        student = Student()
+                        student.user = user
+                        student.firstname = row['firstname']
+                        student.lastname = row['lastname']
+                        student.gender = row['gender']
+                        student.group = form.cleaned_data['group']
+                        student.added_how = new_upload
+                        student.save()
+
+                        num_student_uploaded +=1
+
+                    add_to_log = UploadLog()
+                    add_to_log.upload_id = new_upload
+                    add_to_log.uploaded_by = request.user
+                    add_to_log.file_name = csvfile
+                    add_to_log.amt_uploaded = num_student_uploaded
+                    add_to_log.group = form.cleaned_data['group']
+                    add_to_log.save()
+                    return HttpResponseRedirect(reverse('uploaded_list', args=(new_upload,)))
+
+                print 'not valid'
 
         template_name = 'students/file_upload.html'
-        context = {'form': UploadFileForm()}
+        context = {'form': UploadFileForm(), 'errors': error_text}
         return render(request, template_name, context)
 
 def list_after_upload(request, upload_id):
