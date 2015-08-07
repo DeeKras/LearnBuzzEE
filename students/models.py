@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
 from django.utils import timezone
@@ -7,7 +7,18 @@ from django.utils import timezone
 from .utils import GENDER_CHOICES, MATHPLAN_CHOICES, READINGPLAN_CHOICES
 
 
+class Educator(models.Model):
+    user = models.OneToOneField(User)
+    known_as = models.CharField(max_length=100)
+    email_from = models.CharField(max_length=100)
+    student_group = models.CharField(max_length=10)
+    email_signature = models.TextField()
 
+    class Meta:
+        verbose_name_plural = 'educators'
+
+    def __unicode__(self):
+        return u'{}'.format(self.called)
 
 
 class StudentGroup(models.Model):
@@ -19,23 +30,11 @@ class StudentGroup(models.Model):
     def __unicode__(self):
         return u'{} '.format(self.groupname)
 
-class Educator(models.Model):
-    called = models.CharField(max_length=100)
-    email_from = models.CharField(max_length=100)
-    email_signature = models.TextField()
-    group = models.ManyToManyField(StudentGroup)
 
-    class Meta:
-        verbose_name_plural = 'educators'
-        permissions = (
-            ("view_student", "Can view students"),
-            ("change_student", "Can change student information"),)
-
-    def __unicode__(self):
-        return u'{}'.format(self.called)
 
 
 class Student(models.Model):
+    user = models.OneToOneField(User)
     firstname = models.CharField(max_length=30, blank=False)
     lastname = models.CharField(max_length=30, blank=False)
     gender = models.CharField(max_length=1,

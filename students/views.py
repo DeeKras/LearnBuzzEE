@@ -24,7 +24,7 @@ import csv
 
 
 from .forms import StudentForm, StudentLogForm, StudentGainPointsForm, UploadFileForm
-from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog, Group, UploadLog
+from .models import Student, StudentLog, StudentGainPoints, StudentLearningPlanLog,  UploadLog, Educator
 from .emails import create_learned_email, email_preview, email_send, email_no_send
 from .utils import get_display, MATHPLAN_CHOICES, READINGPLAN_CHOICES, GENDER_CHOICES
 
@@ -143,7 +143,7 @@ def student_search(request):
 
         results = chain(s1, s2)
 
-        if (len(s1) + len(s2))  == 1:
+        if len(s1) ==1 and len(s2) == 0:
             student = Student.objects.get(lastname__istartswith=request.GET['last'])
             form = StudentForm(instance=student)
             template_name = 'students/student_form.html'
@@ -359,6 +359,26 @@ def student_gainpoints_list(request, pk):
 
 def student_spendpoints(request, pk):
     pass
+
+
+class EducatorList(ListView):
+    model = Educator
+    paginate_by = 12
+
+class EducatorCreate(CreateView):
+    model = Educator
+
+    fields = ['known_as', 'email_from', 'email_signature', 'group', ]
+    success_url = reverse_lazy('student_list')
+
+class EducatorEdit(UpdateView):
+    model = Educator
+    fields = ['known_as', 'email_from', 'email_signature', 'group',]
+    success_url = reverse_lazy('student_list')
+
+class EducatorDelete(DeleteView):
+    model = Educator
+    success_url = reverse_lazy('student_list')
 
 #------------------------------------------------------
 

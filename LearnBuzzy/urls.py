@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-
+from students import views
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
@@ -32,5 +32,11 @@ urlpatterns = [
     #upload files
     url(r'^upload$', 'students.views.upload_file', name="upload_file"),
     url(r'^upload/list/(?P<upload_id>[a-z]{6}\.\d{4})$', 'students.views.list_after_upload', name='uploaded_list'),
+
+    #educator
+    url(r'^educator/list$', views.EducatorList.as_view(), name='educator_list'),
+    url(r'^educator/edit/(?P<id>\d+)$', views.EducatorEdit.as_view(), name='educator_edit'),
+    url(r'^educator/new$', views.EducatorCreate.as_view(), name='educator_new'),
+    url(r'^educator/delete/(?P<id>\d+)$', views.EducatorDelete.as_view(), name='educator_delete'),
 ]
 urlpatterns += staticfiles_urlpatterns()
