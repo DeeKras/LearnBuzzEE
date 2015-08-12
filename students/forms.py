@@ -8,7 +8,6 @@ from .models import Student,  StudentLog, StudentGainPoints, StudentGroup,\
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-
         group = forms.ModelChoiceField(queryset=StudentGroup.objects.all(),
                                        widget=forms.Select(attrs={'class': "input-dropdown"}))
         fields = ['firstname', 'lastname', 'gender', 'id',
@@ -81,7 +80,7 @@ class StudentGainPointsForm(forms.ModelForm):
                                              attrs={'class': "input-dropdown"})
         }
 
-    def __init__(self,*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.student = kwargs.pop('student', None)
         super(StudentGainPointsForm, self).__init__(*args, **kwargs)
 

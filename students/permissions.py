@@ -13,7 +13,7 @@ manage_content = register_permission("Manage content", "manage_content")
 
 school_admin = register_role("Admin")
 educator = register_role("Educator")
-caregiver = register_role("Caregiver")
+guardian = register_role("Guardian")
 student = register_role("Student")
 
 #school_admin permissions

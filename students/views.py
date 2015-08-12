@@ -20,7 +20,6 @@ from operator import attrgetter
 from django.utils import timezone
 from itertools import chain
 import easygui
-from copy import deepcopy
 import csv
 
 
@@ -34,8 +33,9 @@ from .utils import get_display, MATHPLAN_CHOICES, READINGPLAN_CHOICES, GENDER_CH
 def student_retrieve(request):
 
     student_list = Student.objects.all().order_by('lastname', 'firstname')
-    paginator = Paginator(student_list, 6, orphans=3)
 
+    #pagination
+    paginator = Paginator(student_list, 6, orphans=3)
     page = request.GET.get('page')
     try:
         students = paginator.page(page)
@@ -52,7 +52,6 @@ def student_new_update(request, pk=None, student=None):
     if pk: #if is an edit
         student = get_object_or_404(Student, pk=pk)
         form = StudentForm(instance=student)
-
         mode='edit'
     else:
         form = StudentForm()
@@ -64,25 +63,28 @@ def student_new_update(request, pk=None, student=None):
 
         if form.is_valid():
             if mode == 'new':
-                # user = User.objects.create()
                 student = form.save(commit=False)
-                student.added_how = 'entered by {}'.format(request.user)
 
+                #create a new user
                 user = User.objects._create_user(
                     username='{}{}'.format(student.firstname, student.lastname).replace(' ',''),
                     email=None,
                     password=student.firstname,
                     is_staff=False, is_superuser=False)
-                group=Group.objects.get(name='Student')
+                group = Group.objects.get(name='Student')
                 user.groups.add(group)
                 user.save()
 
+                #save the student
                 student.user = user
+                student.added_how = 'entered by {}'.format(request.user)
                 student.save()
+
                 add_LearningPlanLog(request, form, student, mode)
+
             elif mode == 'edit':
-                old = get_object_or_404(Student, pk=pk)
-                add_LearningPlanLog(request, form, student, mode, old )
+                old = get_object_or_404(Student, pk=pk) #so i can use to compare if any changes were made
+                add_LearningPlanLog(request, form, student, mode, old)
                 form.save()
             return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
 
@@ -91,49 +93,53 @@ def student_new_update(request, pk=None, student=None):
     return render(request, template_name, context)
 
 
-def educator_new_update(request, pk=None, educator=None):
-    if pk: #if is an edit
-        educator = get_object_or_404(Educator, pk=pk)
-        form = StudentForm(instance=student)
-
-        mode='edit'
-    else:
-        form = StudentForm()
-        mode = 'new'
-
-    #if it is an edit or new with data
-    if request.method == 'POST':
-        form = StudentForm(request.POST, instance=student)
-
-        if form.is_valid():
-            if mode == 'new':
-                # user = User.objects.create()
-                student = form.save(commit=False)
-                student.added_how = 'entered by {}'.format(request.user)
-
-                user = User.objects._create_user(
-                    username='{}{}'.format(student.firstname, student.lastname).replace(' ',''),
-                    email=None,
-                    password=student.firstname,
-                    is_staff=False, is_superuser=False)
-                group=Group.objects.get(name='Student')
-                user.groups.add(group)
-                user.save()
-
-                student.user = user
-                student.save()
-                add_LearningPlanLog(request, form, student, mode)
-            elif mode == 'edit':
-                old = get_object_or_404(Student, pk=pk)
-                add_LearningPlanLog(request, form, student, mode, old )
-                form.save()
-            return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
-
-    template_name = 'students/student_form.html'
-    context = {'form': form, 'student': student, 'mode':mode}
-    return render(request, template_name, context)
+# def educator_new_update(request, pk=None, educator=None):
+#     if pk: #if is an edit
+#         educator = get_object_or_404(Educator, pk=pk)
+#         form = StudentForm(instance=student)
+#
+#         mode='edit'
+#     else:
+#         form = StudentForm()
+#         mode = 'new'
+#
+#     #if it is an edit or new with data
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST, instance=student)
+#
+#         if form.is_valid():
+#             if mode == 'new':
+#                 # user = User.objects.create()
+#                 student = form.save(commit=False)
+#                 student.added_how = 'entered by {}'.format(request.user)
+#
+#                 user = User.objects._create_user(
+#                     username='{}{}'.format(student.firstname, student.lastname).replace(' ',''),
+#                     email=None,
+#                     password=student.firstname,
+#                     is_staff=False, is_superuser=False)
+#                 group=Group.objects.get(name='Student')
+#                 user.groups.add(group)
+#                 user.save()
+#
+#                 student.user = user
+#                 student.save()
+#                 add_LearningPlanLog(request, form, student, mode)
+#             elif mode == 'edit':
+#                 old = get_object_or_404(Student, pk=pk)
+#                 add_LearningPlanLog(request, form, student, mode, old )
+#                 form.save()
+#             return HttpResponseRedirect(reverse('student_edit', args=(student.id,)))
+#
+#     template_name = 'students/student_form.html'
+#     context = {'form': form, 'student': student, 'mode':mode}
+#     return render(request, template_name, context)
 
 def add_LearningPlanLog(request, form,  student, mode, old= None):
+
+    changes = False # intiate as False, until we notice that a change has been made.
+
+    #descibe what an 'empty' form looks like. so can use as boolean below
     empty = (form.cleaned_data['mathplan_points'] == None and \
             form.cleaned_data['mathplan_per'] == None and  \
             form.cleaned_data['mathplan_type'] == '' and \
@@ -141,8 +147,8 @@ def add_LearningPlanLog(request, form,  student, mode, old= None):
             form.cleaned_data['readingplan_per'] == None and \
             form.cleaned_data['readingplan_type'] == '')
 
-    changes = False
     if old != None:
+        #descibe what a 'cahnged' form looks like. so can use as boolean below
         changes = (old.mathplan_points != form.cleaned_data['mathplan_points'] or \
                old.mathplan_per != form.cleaned_data['mathplan_per'] or \
                old.mathplan_type != form.cleaned_data['mathplan_type']or \
@@ -154,6 +160,8 @@ def add_LearningPlanLog(request, form,  student, mode, old= None):
         if mode == 'new' or changes:
            student.currentplan_id +=1
            student.save()
+
+           #add learning plan to the log
            g = StudentLearningPlanLog(student=student,
                                         created_by = request.user,
                                         plan_id = student.currentplan_id,
@@ -247,12 +255,11 @@ def upload_file(request):
                 error_text = '{} was uploaded on {: %b %d, %Y %I:%M%p} as Group {}'.format(csvfile, already_uploaded.uploaded_timestamp, already_uploaded.group)+"\n"+"with these students:"+"\n"
                 for student in students_in_uploaded_batch:
                     error_text += '{}, {}'.format(student.lastname, student.firstname)+'\n'
-                error_messages = {'already uploaded': error_text}
 
             else:
                 #TODO - test to make sure it is a valid csv.
                 #TODO - allow for valid csv or xls
-
+                #this is a vry simple check to see if the students (might) have been uploaded already. Needs many more checkings, etc.
                 form = UploadFileForm(request.POST, request.FILES)
 
                 if form.is_valid():
@@ -262,25 +269,35 @@ def upload_file(request):
                     rows = csv.DictReader(csvfile,)
                     num_student_uploaded = 0
                     for row in rows:
-                        user = User.objects._create_user(
-                        username='{}{}'.format(row['firstname'], row['lastname']).replace(' ',''),
-                        email=None,
-                        password=row['firstname'],
-                        is_staff=False, is_superuser=False)
-                        group=Group.objects.get(name='Student')
-                        user.groups.add(group)
-                        user.save()
+                        #Checks to see if the first student (might) have been imported.
+                        #Needs to be more robust.
+                        new_username='{}{}'.format(row['firstname'], row['lastname']).replace(' ','')
+                        if User.objects.filter(username=new_username).exists():
+                            error_text = 'Seems like {} {} has already been imported. Please check the file.'.\
+                                format(row['firstname'], row['lastname'])
+                            template_name = 'students/file_upload.html'
+                            context = {'form': UploadFileForm(), 'errors': error_text}
+                            return render(request, template_name, context)
+                        else:
+                            user = User.objects._create_user(
+                            username=new_username,
+                            email=None,
+                            password=row['firstname'],
+                            is_staff=False, is_superuser=False)
+                            group=Group.objects.get(name='Student')
+                            user.groups.add(group)
+                            user.save()
 
-                        student = Student()
-                        student.user = user
-                        student.firstname = row['firstname']
-                        student.lastname = row['lastname']
-                        student.gender = row['gender']
-                        student.group = form.cleaned_data['group']
-                        student.added_how = new_upload
-                        student.save()
+                            student = Student()
+                            student.user = user
+                            student.firstname = row['firstname']
+                            student.lastname = row['lastname']
+                            student.gender = row['gender']
+                            student.group = form.cleaned_data['group']
+                            student.added_how = new_upload
+                            student.save()
 
-                        num_student_uploaded +=1
+                            num_student_uploaded +=1
 
                     add_to_log = UploadLog()
                     add_to_log.upload_id = new_upload
@@ -291,14 +308,13 @@ def upload_file(request):
                     add_to_log.save()
                     return HttpResponseRedirect(reverse('uploaded_list', args=(new_upload,)))
 
-                print 'not valid'
+                #TODO - need some action here!
 
         template_name = 'students/file_upload.html'
         context = {'form': UploadFileForm(), 'errors': error_text}
         return render(request, template_name, context)
 
 def list_after_upload(request, upload_id):
-    #TODO - save using serializer - http://www.django-rest-framework.org/api-guide/serializers/
     student_list = Student.objects.filter(added_how=upload_id).order_by('lastname', 'firstname')
     paginator = Paginator(student_list, 6, orphans=3)
     UploadedListFormset = modelformset_factory(
@@ -326,6 +342,7 @@ def list_after_upload(request, upload_id):
 
     uploaded_formset = UploadedListFormset(queryset= student_list)
 
+    #pagination
     page = request.GET.get('page')
     try:
         students = paginator.page(page)
@@ -338,9 +355,10 @@ def list_after_upload(request, upload_id):
         formset = UploadedListFormset(request.POST)
         if formset.is_valid():
             formset.save()
+            return HttpResponseRedirect(reverse('student_list'))
         else:
-            print formset.errors
-
+            pass
+            #TODO: put some action here!
 
     context = {'students': students, 'upload_id': upload_id, 'formset': uploaded_formset}
     template_name = 'students/uploaded_list.html'
@@ -375,9 +393,9 @@ def student_gainpoints(request, pk):
             email_id = create_learned_email(request, student, f)
         #Email - Send, Don't Send, Preview
             if request.POST['submit'] == 'send':
-                return email_send(request, email_id)
+                return email_send(email_id)
             elif request.POST['submit'] == 'no_send':
-                return email_no_send(request, email_id)
+                return email_no_send(email_id)
             elif request.POST['submit'] == 'preview':
                 return email_preview(request, email_id)
 

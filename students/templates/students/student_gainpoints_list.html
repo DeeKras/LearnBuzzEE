@@ -6,28 +6,75 @@
 Total results: {{ total }}
 
 <hr>
-{% for plan in learningplan_list %}
-    <hr>
-    {% ifequal plan.plan_id student.currentplan_id %}
-        <b>Current </b>
-    {% endifequal %}
-
-        <b>Learning Plan {{plan.plan_id}}:  </b>
-        {{plan.mathplan_points}} per {{plan.mathplan_per}} {{plan.get_mathplan_type_display}}
-        |                   {{plan.created_date |date:"d M Y  H:i"}} by {{plan.created_by}}<br>
-    {% for points in points_list %}
         <table>
             <col width="30">
-            <col width="200">
+            <col width="300">
             <col width="600">
-            {% ifequal plan.plan_id points.plan_id %}
+            <col width="600">
+
             <tr>
-                <td><b>{{forloop.counter}}. </b></td>
-                <td>{{points.created_date |date:"d M Y  H:i"}}</td>
-                <td>{{points.math_amt}} {{points.get_math_type_display}} from {{points.math_source}}</td>
+                <th> </th>
+                <th> Date</th>
+                <th>Math</th>
+                <th>Reading</th>
+            </tr>
+        </table>
+{% for plan in learningplan_list %}
+<hr>
+        <table>
+            <col width="30">
+            <col width="300">
+            <col width="600">
+            <col width="600">
+            <tr style="border-bottom: thin solid">
+                <th> </th>
+                <th>
+                    {% if plan.plan_id = student.currentplan_id %}
+                        <b>Current </b>
+                    {% endif %}
+                    <b>Learning Plan {{plan.plan_id}}:  </b>
+                </th>
+                <th>
+                   {% if plan.mathplan_points != None %}
+                        {{plan.mathplan_points}} points per {{plan.mathplan_per}} {{plan.get_mathplan_type_display}}
+        |                   {{plan.created_date |date:"d M Y  H:i"}} by {{plan.created_by}}
+                    {% else %}
+                        No plan submitted at this point
+                    {% endif %}
+                </th>
+                <th>
+                    {% if plan.readingplan_points != None %}
+                            {{plan.readingplan_points}} points per {{plan.readingplan_per}} {{plan.get_readingplan_type_display}}
+        |                   {{plan.created_date |date:"d M Y  H:i"}} by {{plan.created_by}}
+                    {% else %}
+                        No plan submitted at this point
+                    {% endif %}
+                </th>
             </tr>
 
-        {% endifequal %}
+        </table>
+
+        {% for points in points_list %}
+        <table>
+            <col width="30">
+            <col width="300">
+            <col width="600">
+            <col width="600">
+            {% if plan.plan_id = points.plan_id %}
+            <tr style="border-bottom: thin solid">
+                <td><b>{{forloop.counter}}. </b></td>
+                <td>{{points.created_date |date:"d M Y  H:i"}} by: {{points.created_by}}</td>
+                <td>{% if points.math_amt != None %}
+                        {{points.math_amt}} {{points.get_math_type_display}} from {{points.math_source}}
+                    {% endif %}
+                </td>
+                <td>{% if points.reading_amt != None %}
+                        {{points.reading_amt}} {{points.get_reading_type_display}} from {{points.reading_source}}
+                    {% endif %}
+                </td>
+            </tr>
+
+        {% endif %}
             </table>
     {% endfor %}
 {% endfor %}

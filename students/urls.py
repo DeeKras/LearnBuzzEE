@@ -1,6 +1,8 @@
 from django.conf.urls import  url, patterns
 from students.views import StudentList, StudentCreate, StudentEdit, StudentDelete
 
+
+#This is the code for when I change back for Class Based Views. Not being used now.
 urlpatterns =  patterns('students.views',
     url(r'^$', StudentList.as_view(), name='student_list'),
     url(r'^new$', StudentCreate.as_view(), name ='student_new'),

@@ -1,8 +1,3 @@
-from django.core.files import File
-from django.http import HttpResponseRedirect
-from django.contrib.auth.decorators import user_passes_test
-
-
 GENDER_CHOICES = (
         ('M','Male'),
         ('F','Female'),
@@ -44,6 +39,7 @@ def gender_he_she(gender):
 
 # def group_required(*group_names):
 #     """Requires user membership in at least one of the groups passed in."""
+#      from django.contrib.auth.decorators import user_passes_test
 #      def in_groups(u):
 #         if u.is_authenticated():
 #             if bool(u.groups.filter(name__in=group_names)) | u.is_superuser:

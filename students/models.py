@@ -34,9 +34,6 @@ class StudentGroup(models.Model):
     def __unicode__(self):
         return u'{} '.format(self.groupname)
 
-
-
-
 class Student(models.Model):
     user = models.OneToOneField(User)
     firstname = models.CharField(max_length=30, blank=False)
@@ -99,12 +96,12 @@ class Email(models.Model):
     def __unicode__(self):
         return 'email: status {}. created on {}'.format(self.status, self.created_date)
 
-class Parent(models.Model):
+class Guardian(models.Model):
     student = models.ManyToManyField(Student)
     user = models.OneToOneField(User)
 
     class Meta:
-        verbose_name_plural = 'parents'
+        verbose_name_plural = 'guardians'
 
     def __unicode__(self):
         return u'{} {}'.format(self.user.first_name, self.user.last_name)

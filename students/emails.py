@@ -18,10 +18,10 @@ request_url = 'https://api.mailgun.net/v2/{0}/messages'.format(sandbox)
 
 
 def create_learned_email(request, student, f):
-    caregiver = 'dk' #will pull this from parent model
+    guardian = 'dk' #will pull this from parent model
     signature = "your child's teacher" #will pull this from the teacher
 
-    body = 'Hello {}:<br>'.format(caregiver)
+    body = 'Hello {}:<br>'.format(guardian)
     body += "This is a progress report about {} {}. <br> I am so happy to share that ".format(
                     student.firstname, student.lastname)
 
@@ -63,7 +63,7 @@ def create_email_log(request, student, email_from, email_to, email_subject, emai
     return email.id
 
 
-def email_no_send(request, email_id):
+def email_no_send(email_id):
     email = Email.objects.get(id=email_id)
 
     email.status = "No Send"
@@ -74,7 +74,7 @@ def email_no_send(request, email_id):
 
     return HttpResponseRedirect(reverse('student_edit', args=(email.student.id,)))
 
-def email_send(request, email_id):
+def email_send(email_id):
     email = Email.objects.get(id=email_id)
 
     email_data = {'from': email.email_from,
@@ -93,17 +93,14 @@ def email_send(request, email_id):
     email.sent_date = datetime.now()
     email.save()
 
-    print 'Status: {0}'.format(request.status_code)
-    print 'Body:   {0}'.format(request.text)
-
     return HttpResponseRedirect(reverse('student_edit', args=(email.student.id,)))
 
-def email_preview(request, email_id):
+def email_preview(request,email_id):
     email = Email.objects.get(id=email_id)
 
     if request.POST['submit'] == 'no_send':
         email.save()
-        return email_no_send(request, email_id)
+        return email_no_send(email_id)
 
     elif request.POST['submit'] == 'send':
         if request.POST['body_as_html']:
@@ -125,9 +122,9 @@ def email_preview(request, email_id):
                                                 'subject': email.email_subject,
                                                 'body_as_html': email.email_body,
                                                 'body_no_html': body_no_html}),
-                   'from': email.email_from,
-                   'html': email.email_body,
-                   'email_id':email_id}
+                                                'from': email.email_from,
+                                                'html': email.email_body,
+                                                'email_id':email_id}
 
         return render(request, template_name, context)
 
