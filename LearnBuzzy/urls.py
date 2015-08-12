@@ -38,5 +38,6 @@ urlpatterns = [
     url(r'^educator/edit/(?P<id>\d+)$', views.EducatorEdit.as_view(), name='educator_edit'),
     url(r'^educator/new$', views.EducatorCreate.as_view(), name='educator_new'),
     url(r'^educator/delete/(?P<id>\d+)$', views.EducatorDelete.as_view(), name='educator_delete'),
+    url(r'^educator_add', 'students.views.educator_formset', name='educator_add'),
 ]
 urlpatterns += staticfiles_urlpatterns()

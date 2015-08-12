@@ -30,6 +30,44 @@ from .utils import get_display, MATHPLAN_CHOICES, READINGPLAN_CHOICES, GENDER_CH
 
 
 #----------------------------------------------
+
+def educator_formset(request):
+    #TODO: something really off with the email and formset.
+    UserFormSet = modelformset_factory(User,
+                    fields=('username','first_name', 'last_name', 'email'),
+                    extra=10)
+
+    educators_only = User.objects.filter(groups__name__in=['Educator'])
+    educators_only_formset = UserFormSet(queryset= educators_only)
+
+    if request.method == 'POST':
+        formset = UserFormSet(request.POST)
+        if formset.is_valid():
+             for form in formset:
+                 if form.has_changed():
+                    cd = form.cleaned_data
+                    user = User.objects._create_user(
+                        username=cd.get('username'),
+                        first_name = cd.get('first_name'),
+                        last_name = cd.get('last_name'),
+                        email = cd.get('email'),
+                        password='{}{}'.format(cd.get('firstname'), cd.get('lastname')), #need better password
+                        is_staff=False, is_superuser=False)
+                    group=Group.objects.get(name='Educator')
+                    user.groups.add(group)
+                    user.save()
+             return HttpResponseRedirect(reverse('student_list'))
+        else:
+            pass
+            #TODO: put some action here!
+
+
+
+    context = {'formset': educators_only_formset}
+    template_name = 'students/educator_form.html'
+    return render(request, template_name, context)
+
+
 def student_retrieve(request):
 
     student_list = Student.objects.all().order_by('lastname', 'firstname')

@@ -77,7 +77,7 @@ class Student(models.Model):
         return u'{}: {}, {}'.format(self.pk, self.lastname, self.firstname)
 
 class Email(models.Model):
-    student = models.ForeignKey(Student)
+    user = models.ForeignKey(User, related_name='emailuser')
     email_from = models.CharField(max_length=250)
     email_to = models.EmailField()
     email_cc = models.EmailField(blank=True)

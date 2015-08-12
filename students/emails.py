@@ -50,10 +50,13 @@ def create_learned_email(request, student, f):
     email_subject = 'Good news about {} {}'.format(student.firstname, student.lastname)
     email_html = "<html> {} </html>".format(body)
 
-    return create_email_log(request, student, email_from, email_to, email_subject, email_html)
+    user = student.user.id
+    print user
 
-def create_email_log(request, student, email_from, email_to, email_subject, email_html):
-    email = Email(student=student,
+    return create_email_log(request, user, email_from, email_to, email_subject, email_html)
+
+def create_email_log(request, user, email_from, email_to, email_subject, email_html):
+    email = Email(user=user,
                   email_from=email_from,
                   email_to=email_to,
                   email_subject=email_subject,
@@ -86,8 +89,7 @@ def email_send(email_id):
         auth=('api', key),
         data=email_data)
 
-    student_name = '{} {}'.format(email.student.firstname, email.student.lastname)
-    easygui.msgbox("Email about {} was sent".format(student_name), "Email")
+    easygui.msgbox("Email was sent".format(student_name), "Email")
 
     email.status = 'sent'
     email.sent_date = datetime.now()

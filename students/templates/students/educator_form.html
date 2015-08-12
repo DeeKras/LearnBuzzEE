@@ -1,8 +1,38 @@
 {% extends "students/base.html" %}
 {% block content %}
 
+ADMIN: Please set up an account for your teachers. They will fill in more details later.
 <form method="post">{% csrf_token %}
-    {{ form.as_p }}
+
+    <table>
+
+        <tr>
+            <th> User Name</th>
+            <th> First Name</th>
+            <th> Last Name</th>
+            <th> Email</th>
+        </tr>
+        {{ formset.management_form }}
+        {% for form in formset %}
+        <tr>
+            <td>
+                {{form.username}}
+            </td>
+            <td>
+                {{form.first_name}}
+            </td>
+            <td>
+                {{form.last_name}}
+            </td>
+            <td>
+                {{form.email}}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+
     <input type="submit" value="Submit" />
 </form>
 {% endblock content %}
